@@ -29,6 +29,14 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (currentUser) {
+                // Special check for super admin
+                if (currentUser.email === 'privatepple@gmail.com') {
+                    setRole('admin');
+                    setUser(currentUser);
+                    setLoading(false);
+                    return;
+                }
+
                 // Fetch role from Firestore
                 const roleDoc = await getDoc(doc(db, 'users', currentUser.uid));
                 if (roleDoc.exists()) {
