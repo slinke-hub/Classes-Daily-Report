@@ -1,0 +1,103 @@
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background-color: var(--bg-secondary);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.formGroup input,
+.formGroup textarea {
+    background-color: var(--bg-tertiary);
+    border: 1px solid #333;
+    color: var(--text-primary);
+    padding: 12px;
+    border-radius: 6px;
+    outline: none;
+    font-size: 1em;
+    transition: border-color 0.2s;
+    resize: vertical;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 229, 255, 0.1);
+}
+
+.toggleGroup {
+    display: flex;
+    gap: 10px;
+}
+
+.toggleBtn {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #333;
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 600;
+}
+
+.activeYes {
+    background-color: rgba(0, 200, 83, 0.15);
+    color: #00E676;
+    border-color: #00C853;
+}
+
+.activeNo {
+    background-color: rgba(255, 61, 0, 0.15);
+    color: #FF5252;
+    border-color: #FF3D00;
+}
+
+.submitBtn {
+    margin-top: 10px;
+    padding: 14px;
+    background-color: var(--accent-color);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background-color 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.submitBtn:hover {
+    background-color: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.submitBtn:active {
+    transform: translateY(1px);
+}
+
+.submitBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
