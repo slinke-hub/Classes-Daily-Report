@@ -2,16 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { db, storage } from '../utils/firebase';
+import { db } from '../utils/firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import styles from './ReportForm.module.css';
 import TagInput from './TagInput';
+import styles from './ReportForm.module.css';
 
 export default function ReportForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [imageFile, setImageFile] = useState(null); // Local file state
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
         student_email: '', // Add student email field
@@ -19,8 +17,7 @@ export default function ReportForm() {
         point_of_focus: '',
         new_words: [],
         homework: '',
-        next_lesson: '',
-        image_url: '' // Store URL here
+        next_lesson: ''
     });
 
     const handleSubmit = async (e) => {
@@ -28,26 +25,11 @@ export default function ReportForm() {
         setLoading(true);
 
         try {
-            let downloadURL = '';
-
-            // Upload Image if exists
-            if (imageFile) {
-                const filename = `reports/${Date.now()}_${imageFile.name}`;
-                const storageRef = ref(storage, filename);
-                const snapshot = await uploadBytes(storageRef, imageFile);
-                downloadURL = await getDownloadURL(snapshot.ref);
-            }
-
-            await addDoc(collection(db, 'gpa_reports'), {
-                ...formData,
-                image_url: downloadURL,
-                created_at: new Date()
-            });
+            await addDoc(collection(db, 'gpa_reports'), formData);
 
             router.push('/');
             router.refresh();
         } catch (error) {
-            console.error('Error creating report:', error);
             alert('Error creating report: ' + error.message);
         } finally {
             setLoading(false);
@@ -74,17 +56,6 @@ export default function ReportForm() {
                     placeholder="student@example.com"
                     value={formData.student_email}
                     onChange={(e) => setFormData({ ...formData, student_email: e.target.value })}
-                />
-            </div>
-
-            <div className={styles.formGroup}>
-                <label>Attach Photo (Homework/Notes)</label>
-                <input
-                    type="file"
-                    accept="image/*"
-                    capture="environment" // Opens camera on mobile
-                    onChange={(e) => setImageFile(e.target.files[0])}
-                    style={{ paddingTop: '5px' }}
                 />
             </div>
 

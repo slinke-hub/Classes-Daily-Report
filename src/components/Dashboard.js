@@ -60,47 +60,44 @@ export default function Dashboard() {
             ) : (
                 reports.map((report) => (
                     <div key={report.id} className={styles.card}>
-                        <div className={styles.cardHeader}>
-                            <span className={styles.date}>{new Date(report.date).toLocaleDateString()}</span>
+                        <div className={styles.header}>
+                            <span className={styles.date}>
+                                {new Date(report.date).toLocaleDateString(undefined, {
+                                    weekday: 'short',
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                })}
+                            </span>
                             <span className={`${styles.status} ${report.paid_status ? styles.paid : styles.unpaid}`}>
                                 {report.paid_status ? 'PAID' : 'NOT PAID'}
                             </span>
                         </div>
 
-                        {report.image_url && (
-                            <div style={{ marginBottom: '15px' }}>
-                                <a href={report.image_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-color)', textDecoration: 'underline' }}>
-                                    View Attached Photo
-                                </a>
+                        <div className={styles.section}>
+                            <h4>Point of Focus</h4>
+                            <p>{report.point_of_focus}</p>
+                        </div>
+
+                        {report.new_words && report.new_words.length > 0 && (
+                            <div className={styles.section}>
+                                <h4>New Words</h4>
+                                <div className={styles.tags}>
+                                    {report.new_words.map((word, i) => (
+                                        <span key={i} className={styles.tag}>{word}</span>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        <div className={styles.cardBody}>
+                        <div className={styles.row}>
                             <div className={styles.section}>
-                                <h4>Point of Focus</h4>
-                                <p>{report.point_of_focus}</p>
+                                <h4>Homework</h4>
+                                <p>{report.homework || 'None'}</p>
                             </div>
-
-                            {report.new_words && report.new_words.length > 0 && (
-                                <div className={styles.section}>
-                                    <h4>New Words</h4>
-                                    <div className={styles.tags}>
-                                        {report.new_words.map((word, i) => (
-                                            <span key={i} className={styles.tag}>{word}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className={styles.row}>
-                                <div className={styles.section}>
-                                    <h4>Homework</h4>
-                                    <p>{report.homework || 'None'}</p>
-                                </div>
-                                <div className={styles.section}>
-                                    <h4>Next Lesson</h4>
-                                    <p>{report.next_lesson || 'Not specified'}</p>
-                                </div>
+                            <div className={styles.section}>
+                                <h4>Next Lesson</h4>
+                                <p>{report.next_lesson || 'Not specified'}</p>
                             </div>
                         </div>
                     </div>
