@@ -1,0 +1,141 @@
+.container {
+    padding: 40px 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.backBtn {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.formSection,
+.listSection {
+    background-color: var(--bg-secondary);
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.formSection h2,
+.listSection h2 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.formGroup label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.formGroup input,
+.formGroup select {
+    background-color: var(--bg-tertiary);
+    border: 1px solid #333;
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.submitBtn {
+    background-color: var(--accent-color);
+    color: #000;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item {
+    background-color: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.itemTime {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.itemStudent {
+    font-weight: 600;
+}
+
+.itemTopic {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.deleteBtn {
+    background: none;
+    border: none;
+    color: #FF5252;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0 10px;
+}
+
+.empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 40px;
+}
+
+.loading {
+    text-align: center;
+    padding: 100px;
+    color: var(--text-secondary);
+}

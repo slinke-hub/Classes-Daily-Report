@@ -1,0 +1,154 @@
+.container {
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 5px;
+}
+
+.header p {
+    color: var(--text-secondary);
+}
+
+.navActions {
+    display: flex;
+    gap: 15px;
+}
+
+.accentBtn,
+.outlineBtn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.accentBtn {
+    background-color: var(--accent-color);
+    color: #000;
+}
+
+.outlineBtn {
+    border: 1px solid #333;
+    color: var(--text-primary);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.section {
+    background-color: var(--bg-secondary);
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--bg-tertiary);
+}
+
+.cardList,
+.scheduleList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.card,
+.scheduleCard {
+    background-color: var(--bg-tertiary);
+    padding: 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.studentEmail {
+    font-weight: 600;
+}
+
+.chatLink {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+}
+
+.scheduleCard {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.schInfo {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.schTime {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.schStudent {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.schTopic {
+    font-size: 1rem;
+}
+
+.manageBtn {
+    margin-top: 15px;
+    text-align: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 10px;
+    border: 1px dashed #444;
+    border-radius: 8px;
+}
+
+.empty {
+    text-align: center;
+    color: var(--text-secondary);
+    padding: 20px;
+}
+
+.loading {
+    text-align: center;
+    padding: 100px;
+    color: var(--text-secondary);
+}

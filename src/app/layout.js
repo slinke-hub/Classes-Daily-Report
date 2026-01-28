@@ -1,15 +1,18 @@
-'use client';
-
 import './globals.css';
-import { AuthProvider } from '../context/AuthContext';
+import AuthWrapper from '../components/AuthWrapper';
+
+export const metadata = {
+    title: 'GPA Reports',
+    description: 'Daily gpa progress reports',
+};
 
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <body suppressHydrationWarning={true}>
-                <AuthProvider>
+                <AuthWrapper>
                     {children}
-                </AuthProvider>
+                </AuthWrapper>
             </body>
         </html>
     );

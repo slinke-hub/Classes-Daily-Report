@@ -37,18 +37,48 @@ export default function Home() {
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                     {role === 'admin' && (
-                        <Link href="/create" style={{
-                            backgroundColor: 'var(--accent-color)',
-                            color: '#000',
+                        <>
+                            <Link href="/admin/users" style={{
+                                backgroundColor: 'transparent',
+                                border: '1px solid var(--accent-color)',
+                                color: 'var(--accent-color)',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: '1px',
+                                display: 'inline-block'
+                            }}>
+                                Manage Users
+                            </Link>
+                            <Link href="/create" style={{
+                                backgroundColor: 'var(--accent-color)',
+                                color: '#000',
+                                padding: '12px 24px',
+                                borderRadius: '8px',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: '1px',
+                                display: 'inline-block'
+                            }}>
+                                + New Report
+                            </Link>
+                        </>
+                    )}
+
+                    {role === 'teacher' && (
+                        <Link href="/teacher" style={{
+                            backgroundColor: 'transparent',
+                            border: '1px solid var(--accent-color)',
+                            color: 'var(--accent-color)',
                             padding: '12px 24px',
                             borderRadius: '8px',
                             fontWeight: '700',
                             textTransform: 'uppercase',
                             letterSpacing: '1px',
-                            transition: 'transform 0.2s',
                             display: 'inline-block'
                         }}>
-                            + New Report
+                            Teacher Dashboard
                         </Link>
                     )}
 

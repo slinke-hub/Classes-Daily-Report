@@ -26,7 +26,8 @@
 }
 
 .formGroup input,
-.formGroup textarea {
+.formGroup textarea,
+.formGroup select {
     background-color: var(--bg-tertiary);
     border: 1px solid #333;
     color: var(--text-primary);
@@ -100,4 +101,20 @@
 .submitBtn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+
+.fileInput {
+    background-color: var(--bg-tertiary);
+    border: 1px dashed #444 !important;
+    cursor: pointer;
+}
+
+.fileInput:hover {
+    border-color: var(--accent-color) !important;
+}
+
+.fileName {
+    font-size: 0.8em;
+    color: var(--accent-color);
+    margin-top: 4px;
 }
