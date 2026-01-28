@@ -51,6 +51,33 @@
     border-color: var(--accent-color);
 }
 
+.passwordWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.passwordWrapper input {
+    width: 100%;
+    padding-right: 60px;
+}
+
+.togglePassword {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.togglePassword:hover {
+    color: var(--text-primary);
+}
+
 .submit {
     background-color: var(--accent-color);
     color: #000;

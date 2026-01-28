@@ -10,7 +10,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [role, setRole] = useState(null); // 'admin' or 'user'
+    const [role, setRole] = useState(null); // 'admin', 'teacher', or 'student'
 
     useEffect(() => {
         // Get initial session
@@ -45,13 +45,13 @@ export const AuthProvider = ({ children }) => {
                     .maybeSingle();
 
                 if (data) {
-                    setRole(data.role);
+                    setRole(data.role || 'student');
                 } else {
-                    setRole('user');
+                    setRole('student');
                 }
             } catch (err) {
                 console.error('Error fetching role:', err);
-                setRole('user');
+                setRole('student');
             }
             setUser(currentUser);
         } else {
@@ -71,14 +71,14 @@ export const AuthProvider = ({ children }) => {
             password,
             options: {
                 data: {
-                    role: 'user'
+                    role: 'student'
                 }
             }
         });
 
         if (data?.user && !error) {
-            // Option to create profile if needed
-            await supabase.from('profiles').insert({ id: data.user.id, email, role: 'user' });
+            // Create student profile by default
+            await supabase.from('profiles').insert({ id: data.user.id, email, role: 'student' });
         }
         return { user: data?.user, error };
     };
