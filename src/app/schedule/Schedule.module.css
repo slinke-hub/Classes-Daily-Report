@@ -1,0 +1,116 @@
+.container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.calendarWrapper {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+}
+
+/* FullCalendar Customization */
+:global(.fc) {
+    --fc-border-color: rgba(255, 255, 255, 0.08);
+    --fc-today-bg-color: rgba(0, 242, 254, 0.05);
+    --fc-page-bg-color: transparent;
+    font-family: var(--font-main);
+}
+
+:global(.fc-toolbar-title) {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+}
+
+:global(.fc-button-primary) {
+    background: var(--bg-tertiary) !important;
+    border: none !important;
+    text-transform: capitalize !important;
+    font-weight: 600 !important;
+}
+
+:global(.fc-button-active) {
+    background: var(--grad-main) !important;
+    color: #000 !important;
+}
+
+:global(.fc-event) {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal {
+    width: 100%;
+    max-width: 450px;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+}
+
+.modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.modalHeader button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.group label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.group input,
+.group select {
+    background: var(--bg-tertiary);
+    border: var(--glass-border);
+    padding: 12px;
+    border-radius: 8px;
+    color: var(--text-main);
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}

@@ -10,77 +10,103 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [role, setRole] = useState(null); // 'admin', 'teacher', or 'student'
+    const [role, setRole] = useState(null);
 
     useEffect(() => {
+        let isMounted = true;
+
+        const handleUserChange = async (currentUser) => {
+            // 1. If no user, reset state
+            if (!currentUser) {
+                if (isMounted) {
+                    setUser(null);
+                    setRole(null);
+                    setLoading(false);
+                }
+                return;
+            }
+
+            // 2. Fetch role if needed
+            try {
+                // Priority 1: Super Admin List
+                const admins = ['monti.training@hotmail.com'];
+                let fetchedRole = 'student';
+
+                if (admins.includes(currentUser.email)) {
+                    fetchedRole = 'admin';
+                } else {
+                    const { data } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', currentUser.id)
+                        .maybeSingle();
+
+                    if (data && data.role) {
+                        fetchedRole = data.role;
+                    }
+                }
+
+                if (isMounted) {
+                    setUser(currentUser);
+                    setRole(fetchedRole);
+                    setLoading(false);
+                }
+            } catch (err) {
+                console.error('Auth sync error:', err);
+                if (isMounted) {
+                    setUser(currentUser);
+                    setRole('student');
+                    setLoading(false);
+                }
+            }
+        };
+
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             handleUserChange(session?.user ?? null);
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            handleUserChange(session?.user ?? null);
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Only trigger a full reload/loading state if it's a critical auth event
+            // TOKEN_REFRESHED should be silent to avoid unmounting the app
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+                handleUserChange(session?.user ?? null);
+            } else if (session?.user) {
+                // For other events (like tab focus refresh), just update user silently
+                setUser(session.user);
+            }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            isMounted = false;
+            subscription.unsubscribe();
+        };
     }, []);
 
-    const handleUserChange = async (currentUser) => {
-        if (currentUser) {
-            // Special check for super admins
-            const admins = ['privatepple@gmail.com', 'monti.training@hotmail.com'];
-            if (admins.includes(currentUser.email)) {
-                setRole('admin');
-                setUser(currentUser);
-                setLoading(false);
-                return;
-            }
-
-            // Fetch role from profiles/users table if it exists
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', currentUser.id)
-                    .maybeSingle();
-
-                if (data) {
-                    setRole(data.role || 'student');
-                } else {
-                    setRole('student');
-                }
-            } catch (err) {
-                console.error('Error fetching role:', err);
-                setRole('student');
-            }
-            setUser(currentUser);
-        } else {
-            setUser(null);
-            setRole(null);
-        }
-        setLoading(false);
+    const login = async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return data;
     };
 
-    const login = (email, password) => {
-        return supabase.auth.signInWithPassword({ email, password });
-    };
-
-    const signup = async (email, password) => {
+    const signup = async (email, password, metadata) => {
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
-                    role: 'student'
+                    role: 'student',
+                    full_name: metadata.full_name,
+                    phone_number: metadata.phone_number,
+                    gender: metadata.gender,
+                    country: metadata.country
                 }
             }
         });
 
-        if (data?.user && !error) {
-            // Create student profile by default
-            await supabase.from('profiles').insert({ id: data.user.id, email, role: 'student' });
-        }
-        return { user: data?.user, error };
+        if (error) throw error;
+        return data;
     };
 
     const logout = () => {
@@ -88,8 +114,28 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, role, login, signup, logout, loading }}>
-            {!loading && children}
+        <AuthContext.Provider value={{ user, profile, role, login, signup, logout, loading }}>
+            {/* 
+                CRITICAL FIX: 
+                We only show a loading screen on the VERY FIRST load.
+                Once we have a user (even if loading remains true briefly), 
+                we MUST keep the children mounted so the user doesn't lose work on tab switch.
+            */}
+            {loading && !user ? (
+                <div style={{
+                    height: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'var(--bg-main)',
+                    color: 'var(--primary)',
+                    fontFamily: 'var(--font-heading)'
+                }}>
+                    <div className="loader">Loading Session...</div>
+                </div>
+            ) : (
+                children
+            )}
         </AuthContext.Provider>
     );
 };

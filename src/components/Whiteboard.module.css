@@ -1,0 +1,62 @@
+.wrapper {
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.toolbar {
+    height: 60px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: var(--glass-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.tools {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.tools button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.tools button.active {
+    color: var(--primary);
+    background: rgba(0, 242, 254, 0.1);
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.canvas {
+    flex: 1;
+    background: #08080c;
+    cursor: crosshair;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.actions button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+}

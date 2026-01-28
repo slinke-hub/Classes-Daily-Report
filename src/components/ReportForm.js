@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../utils/supabase';
+import { useAuth } from '../context/AuthContext';
 import TagInput from './TagInput';
 import styles from './ReportForm.module.css';
 

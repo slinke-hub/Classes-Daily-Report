@@ -1,0 +1,71 @@
+.container {
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 8px;
+    background: var(--grad-main);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.header p {
+    color: var(--text-dim);
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.tabs button {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 10px 20px;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s;
+}
+
+.tabs button.activeTab {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.workshop {
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    min-height: 400px;
+}
+
+.workshop h3 {
+    margin-bottom: 30px;
+}
+
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+
+.empty p {
+    margin-top: 20px;
+}
+
+.card {
+    padding: 40px;
+    border-radius: var(--radius-lg);
+}

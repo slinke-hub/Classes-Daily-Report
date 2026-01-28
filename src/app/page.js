@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import Link from 'next/navigation';
 import Dashboard from '../components/Dashboard';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase';
 
 export default function Home() {
+    const { user, role, loading } = useAuth();
     const router = useRouter();
-    const { user, role, loading, logout } = useAuth();
 
     useEffect(() => {
         if (!loading && !user) {
@@ -16,86 +17,81 @@ export default function Home() {
         }
     }, [user, loading, router]);
 
-    if (loading) return null; // Or a loading spinner
-
+    if (loading) return null;
     if (!user) return null;
 
     return (
-        <main style={{ padding: '40px 20px', maxWidth: '1000px', margin: '0 auto' }}>
-            <header style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '40px'
-            }}>
-                <div>
-                    <h1 style={{ fontSize: '2.5rem', marginBottom: '8px' }}>GPA Reports</h1>
-                    <p style={{ color: 'var(--text-secondary)' }}>
-                        Welcome, {role === 'admin' ? 'Admin' : 'Student'} ({user.email})
-                    </p>
+        <div className="fade-in">
+            {role === 'admin' && <AdminDashboard />}
+            {role === 'teacher' && <TeacherDashboard />}
+            {role === 'student' && <Dashboard />}
+        </div>
+    );
+}
+
+function AdminDashboard() {
+    const [counts, setCounts] = useState({ students: 0, teachers: 0, classes: 0 });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const { count: studentCount } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('role', 'student');
+
+            const { count: teacherCount } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true })
+                .eq('role', 'teacher');
+
+            const { count: classCount } = await supabase
+                .from('schedules')
+                .select('*', { count: 'exact', head: true })
+                .eq('type', 'class');
+
+            setCounts({
+                students: studentCount || 0,
+                teachers: teacherCount || 0,
+                classes: classCount || 0
+            });
+        };
+        fetchStats();
+    }, []);
+
+    return (
+        <div style={{ padding: '20px' }}>
+            <h1 style={{ marginBottom: '30px' }}>Admin Analytics</h1>
+            <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
+                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Total Students</h3>
+                    <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary)' }}>{counts.students}</p>
                 </div>
-
-                <div style={{ display: 'flex', gap: '15px' }}>
-                    {role === 'admin' && (
-                        <>
-                            <Link href="/admin/users" style={{
-                                backgroundColor: 'transparent',
-                                border: '1px solid var(--accent-color)',
-                                color: 'var(--accent-color)',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                fontWeight: '700',
-                                textTransform: 'uppercase',
-                                letterSpacing: '1px',
-                                display: 'inline-block'
-                            }}>
-                                Manage Users
-                            </Link>
-                            <Link href="/create" style={{
-                                backgroundColor: 'var(--accent-color)',
-                                color: '#000',
-                                padding: '12px 24px',
-                                borderRadius: '8px',
-                                fontWeight: '700',
-                                textTransform: 'uppercase',
-                                letterSpacing: '1px',
-                                display: 'inline-block'
-                            }}>
-                                + New Report
-                            </Link>
-                        </>
-                    )}
-
-                    {role === 'teacher' && (
-                        <Link href="/teacher" style={{
-                            backgroundColor: 'transparent',
-                            border: '1px solid var(--accent-color)',
-                            color: 'var(--accent-color)',
-                            padding: '12px 24px',
-                            borderRadius: '8px',
-                            fontWeight: '700',
-                            textTransform: 'uppercase',
-                            letterSpacing: '1px',
-                            display: 'inline-block'
-                        }}>
-                            Teacher Dashboard
-                        </Link>
-                    )}
-
-                    <button onClick={() => logout()} style={{
-                        background: 'transparent',
-                        border: '1px solid #333',
-                        color: 'var(--text-primary)',
-                        padding: '12px 24px',
-                        borderRadius: '8px',
-                        cursor: 'pointer'
-                    }}>
-                        Logout
-                    </button>
+                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
+                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Teachers</h3>
+                    <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--secondary)' }}>{counts.teachers}</p>
                 </div>
-            </header>
+                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
+                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Classes</h3>
+                    <p style={{ fontSize: '2rem', fontWeight: '800', color: '#ff007a' }}>{counts.classes}</p>
+                </div>
+                <Link href="/admin/revenue" className="glass" style={{ padding: '25px', borderRadius: '16px', textDecoration: 'none' }}>
+                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Monthly Revenue</h3>
+                    <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--success)' }}>$1,240</p>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Manage &rarr;</span>
+                </Link>
+            </div>
+            <div style={{ marginTop: '40px' }}>
+                <Dashboard />
+            </div>
+        </div>
+    );
+}
 
+function TeacherDashboard() {
+    return (
+        <div style={{ padding: '20px' }}>
+            <h1 style={{ marginBottom: '30px' }}>My Classroom</h1>
             <Dashboard />
-        </main>
+        </div>
     );
 }

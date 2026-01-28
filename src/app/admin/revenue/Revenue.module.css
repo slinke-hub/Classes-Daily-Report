@@ -1,0 +1,148 @@
+.container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.backBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: var(--glass-border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.titleInfo h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.titleInfo p {
+    color: var(--text-muted);
+}
+
+.actions {
+    margin-left: auto;
+    display: flex;
+    gap: 15px;
+}
+
+.statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.statCard {
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-radius: var(--radius-lg);
+    position: relative;
+}
+
+.statIcon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.statInfo p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.statInfo h3 {
+    font-size: 2.2rem;
+    font-weight: 800;
+}
+
+.trend {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.up {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.tableWraper {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.tableHeader {
+    padding: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    padding: 20px 25px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table td {
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.amount {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.paid {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.pending {
+    background: rgba(250, 204, 21, 0.1);
+    color: #facc15;
+}
