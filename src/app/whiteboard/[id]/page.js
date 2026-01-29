@@ -24,6 +24,9 @@ export default function WhiteboardPage() {
     const [draggingId, setDraggingId] = useState(null);
     const [isToolbarOpen, setIsToolbarOpen] = useState(true);
     const [currentPath, setCurrentPath] = useState(null);
+    const [activeSection, setActiveSection] = useState('draw'); // 'draw', 'objects', 'settings'
+    const [fontSize, setFontSize] = useState(16);
+    const [opacity, setOpacity] = useState(1);
     const channelRef = useRef(null);
     const videoRef = useRef(null);
     const peerRef = useRef(null);
@@ -126,58 +129,58 @@ export default function WhiteboardPage() {
         }
     }, [remoteStream]);
 
-    const renderAll = (elementsList = elements) => {
-        clearCanvasLocally();
-        // Redraw only Path elements on canvas
-        elementsList.forEach(el => {
-            if (el.type === 'path' && el.points && el.points.length > 0) {
-                const ctx = contextRef.current;
-                ctx.beginPath();
-                ctx.strokeStyle = el.color;
-                ctx.lineWidth = el.width;
-                ctx.moveTo(el.points[0].x, el.points[0].y);
-                el.points.forEach(p => ctx.lineTo(p.x, p.y));
-                ctx.stroke();
-                ctx.closePath();
-            }
-        });
+    const getCoordinates = (e) => {
+        const canvas = canvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+
+        let clientX, clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        } else {
+            clientX = e.clientX;
+            clientY = e.clientY;
+        }
+
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
     };
 
-    const startDrawing = ({ nativeEvent }) => {
-        const { offsetX, offsetY } = nativeEvent;
+    const startDrawing = (e) => {
+        const { x, y } = getCoordinates(e);
         const id = Math.random().toString(36).substr(2, 9);
         const newPath = {
             id,
             type: 'path',
-            points: [{ x: offsetX, y: offsetY }],
+            points: [{ x, y }],
             color: tool === 'eraser' ? '#0a0a0c' : color,
             width: tool === 'eraser' ? 20 : lineWidth,
             userId: user.id
         };
         setCurrentPath(newPath);
         contextRef.current.beginPath();
-        contextRef.current.moveTo(offsetX, offsetY);
+        contextRef.current.moveTo(x, y);
         setIsDrawing(true);
     };
 
-    const draw = ({ nativeEvent }) => {
+    const draw = (e) => {
         if (!isDrawing || !currentPath) return;
-        const { offsetX, offsetY } = nativeEvent;
+        const { x, y } = getCoordinates(e);
 
-        const newPoint = { x: offsetX, y: offsetY };
+        const newPoint = { x, y };
         setCurrentPath(prev => ({
             ...prev,
             points: [...prev.points, newPoint]
         }));
 
-        // Optimized real-time drawing (don't re-render everything while drawing)
         const ctx = contextRef.current;
         ctx.strokeStyle = currentPath.color;
         ctx.lineWidth = currentPath.width;
-        ctx.lineTo(offsetX, offsetY);
+        ctx.lineTo(x, y);
         ctx.stroke();
 
-        // Broadcast point to others (legacy style for performance)
         channelRef.current.send({
             type: 'broadcast',
             event: 'draw',
@@ -445,20 +448,26 @@ export default function WhiteboardPage() {
 
     const handleObjectDrag = (e, id) => {
         if (draggingId !== id) return;
-        const rect = canvasRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left - 75;
-        const y = e.clientY - rect.top - 75;
-        updateElement(id, { x, y });
+        const { x, y } = getCoordinates(e);
+        updateElement(id, { x: x - 75, y: y - 75 });
     };
 
     return (
-        <div className={styles.container} onMouseMove={(e) => draggingId && handleObjectDrag(e, draggingId)} onMouseUp={() => setDraggingId(null)}>
+        <div className={styles.container}
+            onMouseMove={(e) => draggingId && handleObjectDrag(e, draggingId)}
+            onMouseUp={() => setDraggingId(null)}
+            onTouchMove={(e) => { if (draggingId) { e.preventDefault(); handleObjectDrag(e, draggingId); } }}
+            onTouchEnd={() => setDraggingId(null)}
+        >
             <div className={`${styles.mainArea} ${remoteStream || isSharing ? styles.withVideo : ''}`}>
                 <canvas
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
+                    onTouchStart={(e) => { e.preventDefault(); startDrawing(e); }}
+                    onTouchMove={(e) => { e.preventDefault(); draw(e); }}
+                    onTouchEnd={(e) => { e.preventDefault(); stopDrawing(); }}
                     ref={canvasRef}
                     className={styles.canvas}
                 />
@@ -477,6 +486,7 @@ export default function WhiteboardPage() {
                                 height: obj.height
                             }}
                             onMouseDown={(e) => { e.stopPropagation(); setDraggingId(obj.id); }}
+                            onTouchStart={(e) => { e.stopPropagation(); setDraggingId(obj.id); }}
                         >
                             {obj.type === 'sticky' || obj.type === 'text' ? (
                                 <textarea
@@ -520,82 +530,145 @@ export default function WhiteboardPage() {
             </div>
 
             <div className={`${styles.toolbar} ${!isToolbarOpen ? styles.collapsed : ''} glass`}>
-                <button
-                    className={styles.toggleBtn}
-                    onClick={() => setIsToolbarOpen(!isToolbarOpen)}
-                    title={isToolbarOpen ? 'Hide Tools' : 'Show Tools'}
-                >
-                    {isToolbarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                </button>
-
-                <div className={styles.toolbarItems}>
-                    <div className={styles.historyTools}>
-                        <button onClick={undo} disabled={undoStack.length === 0} title="Undo">
-                            <Undo2 size={20} />
-                        </button>
-                        <button onClick={redo} disabled={redoStack.length === 0} title="Redo">
-                            <Redo2 size={20} />
-                        </button>
-                    </div>
-
-                    <div className={styles.divider} />
-
+                <div className={styles.sidebarRail}>
                     <button
-                        className={tool === 'pencil' ? styles.active : ''}
-                        onClick={() => setTool('pencil')}
-                        title="Pencil"
+                        className={`${styles.railBtn} ${activeSection === 'draw' ? styles.active : ''}`}
+                        onClick={() => setActiveSection('draw')}
+                        title="Drawing Tools"
                     >
-                        <Pencil size={20} />
+                        <Pencil size={22} />
                     </button>
                     <button
-                        className={tool === 'eraser' ? styles.active : ''}
-                        onClick={() => setTool('eraser')}
-                        title="Eraser"
+                        className={`${styles.railBtn} ${activeSection === 'objects' ? styles.active : ''}`}
+                        onClick={() => setActiveSection('objects')}
+                        title="Insert Elements"
                     >
-                        <Eraser size={20} />
+                        <PlusCircle size={22} />
                     </button>
-
-                    <div className={styles.divider} />
-
-                    <div className={styles.colors}>
-                        {['#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#ffffff', '#fef08a'].map(c => (
-                            <button
-                                key={c}
-                                style={{ background: c }}
-                                className={color === c ? styles.activeColor : ''}
-                                onClick={() => setColor(c)}
-                            />
-                        ))}
-                    </div>
-
-                    <div className={styles.divider} />
-
-                    <div className={styles.objectsTools}>
-                        <button onClick={() => createObject('sticky')} title="Add Sticky Note"><PlusCircle size={20} /></button>
-                        <button onClick={() => createObject('rect')} title="Add Rectangle"><Square size={20} /></button>
-                        <button onClick={() => createObject('circle')} title="Add Circle"><Circle size={20} /></button>
-                        <button onClick={() => createObject('text')} title="Add Textbox"><Type size={20} /></button>
-                    </div>
-
-                    <div className={styles.divider} />
-
-                    <button onClick={clearCanvas} title="Clear All"><Trash2 size={20} /></button>
-                    <button onClick={downloadBoard} title="Save as Image"><Download size={20} /></button>
-
-                    {role === 'teacher' && (
-                        <>
-                            <div className={styles.divider} />
-                            <button
-                                className={`${styles.shareBtn} ${isSharing ? styles.activeShare : ''}`}
-                                onClick={isSharing ? stopScreenShare : startScreenShare}
-                                title={isSharing ? 'Stop Sharing' : 'Share Screen'}
-                            >
-                                <Maximize size={20} />
-                                <span>{isSharing ? 'Stop' : 'Share'}</span>
-                            </button>
-                        </>
-                    )}
+                    <button
+                        className={`${styles.railBtn} ${activeSection === 'settings' ? styles.active : ''}`}
+                        onClick={() => setActiveSection('settings')}
+                        title="Board Controls"
+                    >
+                        <Settings size={22} />
+                    </button>
+                    <div style={{ flex: 1 }} />
+                    <button
+                        className={styles.railBtn}
+                        onClick={() => setIsToolbarOpen(!isToolbarOpen)}
+                        title={isToolbarOpen ? 'Collapse' : 'Expand'}
+                    >
+                        {isToolbarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+                    </button>
                 </div>
+
+                {isToolbarOpen && (
+                    <div className={styles.inspector}>
+                        {activeSection === 'draw' && (
+                            <>
+                                <h4>Drawing Tools</h4>
+                                <div className={styles.toolGrid}>
+                                    <button
+                                        className={`${styles.toolItem} ${tool === 'pencil' ? styles.active : ''}`}
+                                        onClick={() => setTool('pencil')}
+                                    >
+                                        <Pencil size={18} />
+                                        <span>Pencil</span>
+                                    </button>
+                                    <button
+                                        className={`${styles.toolItem} ${tool === 'eraser' ? styles.active : ''}`}
+                                        onClick={() => setTool('eraser')}
+                                    >
+                                        <Eraser size={18} />
+                                        <span>Eraser</span>
+                                    </button>
+                                </div>
+                                <div className={styles.propertyRow}>
+                                    <label>Stroke Width <span>{lineWidth}px</span></label>
+                                    <input
+                                        type="range" min="1" max="50"
+                                        value={lineWidth}
+                                        onChange={(e) => setLineWidth(parseInt(e.target.value))}
+                                        className={styles.slider}
+                                    />
+                                </div>
+                                <div className={styles.propertyRow}>
+                                    <label>Colors</label>
+                                    <div className={styles.colors}>
+                                        {['#00f2fe', '#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#fef08a', '#ffffff', '#94a3b8', '#64748b', '#ef4444', '#f59e0b', '#0a0a0c'].map(c => (
+                                            <button
+                                                key={c}
+                                                style={{ background: c, width: '22px', height: '22px', borderRadius: '50%', border: color === c ? '2px solid #fff' : 'none', cursor: 'pointer' }}
+                                                onClick={() => setColor(c)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className={styles.divider} />
+                                <div className={styles.historyTools}>
+                                    <button className={styles.railBtn} onClick={undo} disabled={undoStack.length === 0} title="Undo">
+                                        <Undo2 size={18} />
+                                    </button>
+                                    <button className={styles.railBtn} onClick={redo} disabled={redoStack.length === 0} title="Redo">
+                                        <Redo2 size={18} />
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {activeSection === 'objects' && (
+                            <>
+                                <h4>Insert Elements</h4>
+                                <div className={styles.toolGrid}>
+                                    <button className={styles.toolItem} onClick={() => createObject('sticky')}>
+                                        <StickyNote size={18} />
+                                        <span>Sticky</span>
+                                    </button>
+                                    <button className={styles.toolItem} onClick={() => createObject('rect')}>
+                                        <Square size={18} />
+                                        <span>Box</span>
+                                    </button>
+                                    <button className={styles.toolItem} onClick={() => createObject('circle')}>
+                                        <Circle size={18} />
+                                        <span>Circle</span>
+                                    </button>
+                                    <button className={styles.toolItem} onClick={() => createObject('text')}>
+                                        <Type size={18} />
+                                        <span>Text</span>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+
+                        {activeSection === 'settings' && (
+                            <>
+                                <h4>Board Controls</h4>
+                                <div className={styles.toolGrid}>
+                                    <button className={styles.toolItem} onClick={clearCanvas}>
+                                        <Trash2 size={18} />
+                                        <span>Clear Board</span>
+                                    </button>
+                                    <button className={styles.toolItem} onClick={downloadBoard}>
+                                        <Download size={18} />
+                                        <span>Export PNG</span>
+                                    </button>
+                                </div>
+                                {role === 'teacher' && (
+                                    <div className={styles.propertyRow} style={{ marginTop: '10px' }}>
+                                        <button
+                                            className={`btn-primary ${isSharing ? styles.activeShare : ''}`}
+                                            onClick={isSharing ? stopScreenShare : startScreenShare}
+                                            style={{ width: '100%', padding: '12px', fontSize: '0.8rem' }}
+                                        >
+                                            <Maximize size={18} />
+                                            <span>{isSharing ? 'Stop Sharing' : 'Share Screen'}</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className={styles.userList}>

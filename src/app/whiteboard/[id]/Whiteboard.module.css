@@ -19,232 +19,178 @@
     flex: 1;
     display: block;
     cursor: crosshair;
+    touch-action: none;
 }
 
 .withVideo .canvas {
     flex: 0.6;
 }
 
-.videoContainer {
-    flex: 0.4;
-    background: #000;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    animation: slideInRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.video {
-    width: 100%;
-    max-height: 80%;
-    object-fit: contain;
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-}
-
-.videoLabel {
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--primary);
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.topBar {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    z-index: 110;
-}
-
-.backBtn {
-    background: rgba(255, 255, 255, 0.05);
-    border: var(--glass-border);
-    color: var(--text-main);
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.backBtn svg {
-    transition: transform 0.3s ease;
-}
-
-.backBtn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(-5px) scale(1.1);
-    border-color: var(--primary);
-    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
-    color: var(--primary);
-}
-
-.backBtn:hover svg {
-    transform: translateX(-2px);
-}
-
-.presence {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    color: var(--success);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+/* ... existing video styles ... */
 
 .toolbar {
     position: absolute;
     left: 20px;
-    top: 120px;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 24px;
+    gap: 0;
+    padding: 0;
+    border-radius: 20px;
     z-index: 100;
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    max-height: calc(100vh - 140px);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    background: rgba(13, 13, 18, 0.85);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
 }
 
 .collapsed {
-    transform: translateX(-80%);
-    padding: 10px 5px;
+    left: -60px;
 }
 
-.collapsed .toolbarItems {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.8);
-}
-
-.toggleBtn {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-radius: 50% !important;
-    margin-bottom: 10px;
-    z-index: 10;
-}
-
-.collapsed .toggleBtn {
-    margin-bottom: 0;
-    transform: translateX(35px);
-    background: var(--grad-main) !important;
-    color: #000 !important;
-}
-
-.toolbarItems {
+.sidebarRail {
+    width: 65px;
+    background: rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
-    transition: all 0.3s ease;
+    padding: 20px 0;
+    gap: 15px;
 }
 
-.toolbar button {
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    width: 44px;
-    height: 44px;
+.sidebarSection {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.railBtn {
+    width: 42px;
+    height: 42px;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--text-dim);
+    background: none;
+    border: none;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.toolbar button:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.toolbar button:hover {
+.railBtn:hover {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-main);
 }
 
-.toolbar button.active {
-    background: var(--primary);
-    color: #000;
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+.railBtn.active {
+    background: rgba(0, 242, 254, 0.15);
+    color: var(--primary);
+    box-shadow: inset 0 0 10px rgba(0, 242, 254, 0.1);
 }
 
-.shareBtn {
-    flex-direction: column;
-    gap: 4px;
-    padding: 12px 8px !important;
-    width: 60px !important;
-    height: auto !important;
-    font-weight: 700;
-    font-size: 0.65rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.shareBtn span {
-    font-size: 0.6rem;
-}
-
-.activeShare {
-    background: var(--error) !important;
-    color: #fff !important;
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) !important;
-}
-
-.historyTools {
+.inspector {
+    width: 240px;
+    padding: 20px;
     display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: slideInLeft 0.3s ease;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.inspector h4 {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+}
+
+.toolGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.toolItem {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: none;
+}
+
+.toolItem:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.toolItem.active {
+    background: var(--grad-main);
+    color: #000;
+    border-color: transparent;
+}
+
+.propertyRow {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
 }
 
-.historyTools button {
-    width: 36px !important;
-    height: 36px !important;
+.propertyRow label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
 }
 
-.divider {
-    width: 24px;
-    height: 1px;
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
     background: rgba(255, 255, 255, 0.1);
-    margin: 5px 0;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--primary-glow);
 }
 
 .colors {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
 }
 
