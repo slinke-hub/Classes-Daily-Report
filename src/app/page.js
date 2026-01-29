@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Dashboard from '../components/Dashboard';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
+import dashStyles from '../components/Dashboard.module.css';
 
 export default function Home() {
     const { user, role, loading } = useAuth();
@@ -67,23 +68,23 @@ function AdminDashboard() {
     }, []);
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div className={dashStyles.container}>
             <h1 style={{ marginBottom: '30px' }}>Admin Analytics</h1>
-            <div className="grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
-                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Total Students</h3>
+            <div className={dashStyles.grid}>
+                <div className={dashStyles.card}>
+                    <h3 className={dashStyles.sectionTitle}>Total Students</h3>
                     <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--primary)' }}>{counts.students}</p>
                 </div>
-                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
-                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Teachers</h3>
+                <div className={dashStyles.card}>
+                    <h3 className={dashStyles.sectionTitle}>Active Teachers</h3>
                     <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--secondary)' }}>{counts.teachers}</p>
                 </div>
-                <div className="glass" style={{ padding: '25px', borderRadius: '16px' }}>
-                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Active Classes</h3>
+                <div className={dashStyles.card}>
+                    <h3 className={dashStyles.sectionTitle}>Active Classes</h3>
                     <p style={{ fontSize: '2rem', fontWeight: '800', color: '#ff007a' }}>{counts.classes}</p>
                 </div>
-                <Link href="/admin/revenue" className="glass" style={{ padding: '25px', borderRadius: '16px', textDecoration: 'none' }}>
-                    <h3 style={{ color: 'var(--text-dim)', fontSize: '0.75rem', textTransform: 'uppercase' }}>Monthly Revenue</h3>
+                <Link href="/admin/revenue" className={dashStyles.card} style={{ textDecoration: 'none' }}>
+                    <h3 className={dashStyles.sectionTitle}>Monthly Revenue</h3>
                     <p style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--success)' }}>${counts.revenue.toLocaleString()}</p>
                     <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Manage &rarr;</span>
                 </Link>
@@ -97,7 +98,7 @@ function AdminDashboard() {
 
 function TeacherDashboard() {
     return (
-        <div style={{ padding: '20px' }}>
+        <div className={dashStyles.container}>
             <h1 style={{ marginBottom: '30px' }}>My Classroom</h1>
             <Dashboard />
         </div>
