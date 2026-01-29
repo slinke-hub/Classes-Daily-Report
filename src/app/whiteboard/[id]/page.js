@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Eraser, Trash2, Download, Users, Maximize, Minimize, PlusCircle, Square, Circle, StickyNote, Type, ChevronLeft, ChevronRight, Undo2, Redo2 } from 'lucide-react';
+import { ArrowLeft, Pencil, Eraser, Trash2, Download, Users, Maximize, Minimize, PlusCircle, Square, Circle, StickyNote, Type, ChevronLeft, ChevronRight, Undo2, Redo2, Settings } from 'lucide-react';
 import styles from './Whiteboard.module.css';
 
 export default function WhiteboardPage() {

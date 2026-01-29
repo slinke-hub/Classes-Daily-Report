@@ -49,7 +49,7 @@ export default function ApiPage() {
         const { data, error } = await supabase
             .from('api_keys')
             .insert([{
-                user_id: user.id,
+                user_id: user?.id,
                 name: newKeyName,
                 secret_key: secret
             }])

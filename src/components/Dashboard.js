@@ -110,7 +110,7 @@ export default function Dashboard() {
                             ) : <p>No teacher assigned.</p>
                         ) : (
                             <div className={styles.teacherInfo}>
-                                <p>Welcome back, {user.email.split('@')[0]}!</p>
+                                <p>Welcome back, {user?.email?.split('@')[0] || 'User'}!</p>
                                 <Link href="/tools" className={`${styles.chatBtn} btn-primary`}>Teaching Workshop</Link>
                             </div>
                         )}

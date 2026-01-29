@@ -97,7 +97,7 @@ export default function Navbar() {
                         {isProfileOpen && (
                             <div className={`${styles.dropdown} glass`}>
                                 <div className={styles.userInfo}>
-                                    <p className={styles.userEmail}>{user.email}</p>
+                                    <p className={styles.userEmail}>{user?.email}</p>
                                     <span className={`${styles.roleBadge} ${styles[role]}`}>{role}</span>
                                 </div>
                                 <div className={styles.divider} />
