@@ -182,8 +182,9 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     line-height: 1.5;
+    min-width: 60px;
 }
 
 .sent .messageContent {
@@ -200,18 +201,142 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Media Styles */
+.mediaContainer {
+    margin: -6px -12px 4px -12px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.mediaContent {
+    max-width: 100%;
+    max-height: 300px;
+    display: block;
+    object-fit: cover;
+}
+
+.fileBox {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    color: var(--text-main);
+}
+
+.fileBox span {
+    flex: 1;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.downloadBtn {
+    color: var(--primary);
+    transition: transform 0.2s;
+}
+
+.downloadBtn:hover {
+    transform: scale(1.1);
+}
+
+.caption {
+    margin-top: 4px;
+}
+
+.messageFooter {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 2px;
+}
+
 .time {
     font-size: 0.65rem;
-    opacity: 0.5;
-    align-self: flex-end;
+    opacity: 0.6;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    color: var(--text-dim);
+}
+
+.read {
+    color: #34b7f1;
+    /* WhatsApp Blue */
+}
+
+.delivered {
+    opacity: 0.8;
 }
 
 .inputArea {
-    padding: 25px;
+    padding: 15px 25px;
     background: rgba(255, 255, 255, 0.02);
     display: flex;
-    gap: 15px;
+    align-items: flex-end;
+    gap: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attachBtn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.attachBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--primary);
+}
+
+.inputWrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.fileSelected {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 242, 254, 0.1);
+    color: var(--primary);
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    width: fit-content;
+    max-width: 200px;
+}
+
+.fileSelected span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fileSelected button {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: bold;
 }
 
 .input {
@@ -235,14 +360,17 @@
     background: var(--primary);
     color: #000;
     border: none;
-    padding: 0 28px;
+    height: 44px;
+    padding: 0 20px;
     border-radius: 12px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .sendBtn:hover {

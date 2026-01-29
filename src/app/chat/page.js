@@ -5,7 +5,7 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { MessageSquare, Users, ArrowLeft, Send, Search } from 'lucide-react';
+import { MessageSquare, Users, ArrowLeft, Send, Search, Check, CheckCheck, Paperclip, Image, FileText, Download } from 'lucide-react';
 import styles from './Chat.module.css';
 
 export default function ChatPage() {
@@ -20,7 +20,10 @@ export default function ChatPage() {
     const [otherUser, setOtherUser] = useState(null);
     const [fetching, setFetching] = useState(false);
     const [loadingContacts, setLoadingContacts] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
     const messagesEndRef = useRef(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         if (!authLoading) {
@@ -120,6 +123,21 @@ export default function ChatPage() {
             .order('created_at', { ascending: true });
         setMessages(data || []);
         setFetching(false);
+
+        // Mark as read
+        if (data && data.length > 0) {
+            markAsRead();
+        }
+    };
+
+    const markAsRead = async () => {
+        if (!chatWithId) return;
+        await supabase
+            .from('messages')
+            .update({ read_at: new Date().toISOString() })
+            .eq('sender_id', chatWithId)
+            .eq('receiver_id', user.id)
+            .is('read_at', null);
     };
 
     const subscribeToMessages = () => {
@@ -128,26 +146,79 @@ export default function ChatPage() {
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
-                table: 'messages',
-                filter: `receiver_id=eq.${user.id}`
+                table: 'messages'
             }, (payload) => {
-                if (payload.new.sender_id === chatWithId) {
-                    setMessages(prev => [...prev, payload.new]);
+                const isFromPartner = payload.new.sender_id === chatWithId && payload.new.receiver_id === user.id;
+                const isFromMe = payload.new.sender_id === user.id && payload.new.receiver_id === chatWithId;
+
+                if (isFromPartner || isFromMe) {
+                    setMessages(prev => {
+                        // Check if message already exists (optimistic update)
+                        if (prev.find(m => m.id === payload.new.id)) return prev;
+                        return [...prev, payload.new];
+                    });
+                    if (isFromPartner) markAsRead();
                 }
+            })
+            .on('postgres_changes', {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'messages'
+            }, (payload) => {
+                setMessages(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
             })
             .subscribe();
 
         return () => supabase.removeChannel(channel);
     };
 
+    const handleFileChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !chatWithId) return;
+        if ((!newMessage.trim() && !selectedFile) || !chatWithId) return;
+
+        let fileUrl = null;
+        let fileName = null;
+        let fileType = null;
+
+        if (selectedFile) {
+            setUploading(true);
+            const fileExt = selectedFile.name.split('.').pop();
+            const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+
+            const { data, error: uploadError } = await supabase.storage
+                .from('chat-media')
+                .upload(filePath, selectedFile);
+
+            if (uploadError) {
+                alert('Error uploading file: ' + uploadError.message);
+                setUploading(false);
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('chat-media')
+                .getPublicUrl(filePath);
+
+            fileUrl = publicUrl;
+            fileName = selectedFile.name;
+            fileType = selectedFile.type;
+            setUploading(false);
+            setSelectedFile(null);
+        }
 
         const messageData = {
             sender_id: user.id,
             receiver_id: chatWithId,
-            content: newMessage.trim()
+            content: newMessage.trim(),
+            file_url: fileUrl,
+            file_name: fileName,
+            file_type: fileType
         };
 
         const tempId = Date.now();
@@ -222,10 +293,34 @@ export default function ChatPage() {
                                         className={`${styles.message} ${msg.sender_id === user.id ? styles.sent : styles.received}`}
                                     >
                                         <div className={styles.messageContent}>
-                                            {msg.content}
-                                            <span className={styles.time}>
-                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
+                                            {msg.file_url && (
+                                                <div className={styles.mediaContainer}>
+                                                    {msg.file_type?.startsWith('image/') ? (
+                                                        <img src={msg.file_url} alt={msg.file_name} className={styles.mediaContent} />
+                                                    ) : msg.file_type?.startsWith('video/') ? (
+                                                        <video src={msg.file_url} controls className={styles.mediaContent} />
+                                                    ) : (
+                                                        <div className={styles.fileBox}>
+                                                            <FileText size={20} />
+                                                            <span>{msg.file_name}</span>
+                                                            <a href={msg.file_url} download={msg.file_name} className={styles.downloadBtn}>
+                                                                <Download size={16} />
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                            {msg.content && <p className={msg.file_url ? styles.caption : ''}>{msg.content}</p>}
+                                            <div className={styles.messageFooter}>
+                                                <span className={styles.time}>
+                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                                {msg.sender_id === user.id && (
+                                                    <div className={`${styles.status} ${msg.read_at ? styles.read : styles.delivered}`}>
+                                                        {msg.read_at ? <CheckCheck size={14} /> : (msg.id < 1e12 ? <CheckCheck size={14} /> : <Check size={14} />)}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -235,15 +330,39 @@ export default function ChatPage() {
 
                         <form onSubmit={handleSendMessage} className={styles.inputArea}>
                             <input
-                                type="text"
-                                placeholder="Type a message..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                className={styles.input}
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }}
+                                accept="image/*,video/*,.pdf,.doc,.docx"
                             />
-                            <button type="submit" className={styles.sendBtn}>
+                            <button
+                                type="button"
+                                className={styles.attachBtn}
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={uploading}
+                            >
+                                <Paperclip size={20} />
+                            </button>
+                            <div className={styles.inputWrapper}>
+                                {selectedFile && (
+                                    <div className={styles.fileSelected}>
+                                        <FileText size={16} />
+                                        <span>{selectedFile.name}</span>
+                                        <button onClick={() => setSelectedFile(null)}>×</button>
+                                    </div>
+                                )}
+                                <input
+                                    type="text"
+                                    placeholder="Type a message..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className={styles.input}
+                                />
+                            </div>
+                            <button type="submit" className={styles.sendBtn} disabled={uploading}>
                                 <Send size={20} />
-                                <span className={styles.hideMobile}>Send</span>
+                                <span className={styles.hideMobile}>{uploading ? '...' : 'Send'}</span>
                             </button>
                         </form>
                     </>
