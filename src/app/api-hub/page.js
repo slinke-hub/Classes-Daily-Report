@@ -214,12 +214,11 @@ export default function ApiPage() {
 }`}
                 </pre>
             </div>
-            </div>
 
-            <CustomDialog 
-                {...dialog} 
-                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))} 
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
             />
-        </div >
+        </div>
     );
 }

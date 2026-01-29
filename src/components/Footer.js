@@ -9,7 +9,7 @@ export default function Footer() {
                 <div className={styles.line}>
                     <div className={styles.logo}>GPA<span>Mastery</span></div>
                     <div className={styles.links}>
-                        <Link href="/dashboard">Dashboard</Link>
+                        <Link href="/">Dashboard</Link>
                         <Link href="/homework">Homework</Link>
                         <Link href="/chat">Chat</Link>
                         <Link href="/profile">Profile</Link>
