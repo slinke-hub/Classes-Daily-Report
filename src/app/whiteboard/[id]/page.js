@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Pencil, Eraser, Trash2, Download, Users, Maximize, Minimize, PlusCircle, Square, Circle, StickyNote, Type, ChevronLeft, ChevronRight, Undo2, Redo2, Settings } from 'lucide-react';
+import { ArrowLeft, Pencil, Eraser, Trash2, Download, Users, Maximize, Minimize, PlusCircle, Square, Circle, StickyNote, Type, ChevronLeft, ChevronRight, Undo2, Redo2, Settings, Mic, MicOff, PhoneOff, Volume2 } from 'lucide-react';
 import styles from './Whiteboard.module.css';
 
 export default function WhiteboardPage() {
@@ -21,17 +21,13 @@ export default function WhiteboardPage() {
     const [elements, setElements] = useState([]);
     const [undoStack, setUndoStack] = useState([]);
     const [redoStack, setRedoStack] = useState([]);
-    const [draggingId, setDraggingId] = useState(null);
-    const [isToolbarOpen, setIsToolbarOpen] = useState(true);
-    const [currentPath, setCurrentPath] = useState(null);
-    const [activeSection, setActiveSection] = useState('draw'); // 'draw', 'objects', 'settings'
-    const [fontSize, setFontSize] = useState(16);
-    const [opacity, setOpacity] = useState(1);
-    const channelRef = useRef(null);
-    const videoRef = useRef(null);
-    const peerRef = useRef(null);
     const [isSharing, setIsSharing] = useState(false);
     const [remoteStream, setRemoteStream] = useState(null);
+    const [isMicOn, setIsMicOn] = useState(false);
+    const [isInVoice, setIsInVoice] = useState(false);
+    const [remoteAudios, setRemoteAudios] = useState([]); // [{userId, stream, name}]
+    const peersRef = useRef(new Map()); // Manage multiple peers for mesh voice
+    const localAudioStreamRef = useRef(null);
 
     const setupCanvas = () => {
         const canvas = canvasRef.current;
@@ -97,6 +93,12 @@ export default function WhiteboardPage() {
             .on('presence', { event: 'sync' }, () => {
                 const newState = channel.presenceState();
                 setActiveUsers(Object.values(newState).flat());
+            })
+            .on('broadcast', { event: 'voice-join' }, ({ payload }) => {
+                handleVoiceJoin(payload);
+            })
+            .on('broadcast', { event: 'voice-signal' }, ({ payload }) => {
+                handleVoiceSignal(payload);
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
@@ -337,7 +339,81 @@ export default function WhiteboardPage() {
         }
     };
 
-    const setupPeerConnection = (targetId, isInitiator) => {
+    // --- VOICE CALL LOGIC ---
+
+    const joinVoice = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            localAudioStreamRef.current = stream;
+            setIsMicOn(true);
+            setIsInVoice(true);
+
+            // Notify everyone that I joined voice
+            channelRef.current.send({
+                type: 'broadcast',
+                event: 'voice-join',
+                payload: { userId: user.id, name: profile?.full_name || user.email }
+            });
+        } catch (err) {
+            console.error('Error joining voice:', err);
+            alert('Could not access microphone. Please check permissions.');
+        }
+    };
+
+    const leaveVoice = () => {
+        localAudioStreamRef.current?.getTracks().forEach(track => track.stop());
+        localAudioStreamRef.current = null;
+        setIsInVoice(false);
+        setIsMicOn(false);
+
+        // Close all peer connections
+        peersRef.current.forEach(pc => pc.close());
+        peersRef.current.clear();
+        setRemoteAudios([]);
+    };
+
+    const toggleMic = () => {
+        if (localAudioStreamRef.current) {
+            const audioTrack = localAudioStreamRef.current.getAudioTracks()[0];
+            audioTrack.enabled = !audioTrack.enabled;
+            setIsMicOn(audioTrack.enabled);
+        }
+    };
+
+    const handleVoiceJoin = async (payload) => {
+        if (!isInVoice || payload.userId === user.id) return;
+
+        // As a person already in voice, I initiate the connection to the newcomer
+        setupVoicePeer(payload.userId, true);
+    };
+
+    const handleVoiceSignal = async (payload) => {
+        if (!isInVoice || payload.to !== user.id) return;
+
+        let pc = peersRef.current.get(payload.from);
+        if (!pc) {
+            pc = setupVoicePeer(payload.from, false);
+        }
+
+        if (payload.type === 'offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            channelRef.current.send({
+                type: 'broadcast',
+                event: 'voice-signal',
+                payload: { type: 'answer', sdp: answer, to: payload.from, from: user.id }
+            });
+        } else if (payload.type === 'answer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+        } else if (payload.type === 'candidate') {
+            try {
+                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+            } catch (e) { }
+        }
+    };
+
+    const setupVoicePeer = (targetId, isInitiator) => {
         const pc = new RTCPeerConnection({
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
         });
@@ -346,35 +422,38 @@ export default function WhiteboardPage() {
             if (candidate) {
                 channelRef.current.send({
                     type: 'broadcast',
-                    event: 'signal',
+                    event: 'voice-signal',
                     payload: { type: 'candidate', candidate, to: targetId, from: user.id }
                 });
             }
         };
 
         pc.ontrack = ({ streams }) => {
-            setRemoteStream(streams[0]);
+            setRemoteAudios(prev => {
+                if (prev.find(a => a.userId === targetId)) return prev;
+                return [...prev, { userId: targetId, stream: streams[0] }];
+            });
         };
 
+        // Add local audio stream
+        if (localAudioStreamRef.current) {
+            localAudioStreamRef.current.getTracks().forEach(track => {
+                pc.addTrack(track, localAudioStreamRef.current);
+            });
+        }
+
         if (isInitiator) {
-            // Initiator (Student) creates offer
             pc.createOffer().then(async (offer) => {
                 await pc.setLocalDescription(offer);
                 channelRef.current.send({
                     type: 'broadcast',
-                    event: 'signal',
+                    event: 'voice-signal',
                     payload: { type: 'offer', sdp: offer, to: targetId, from: user.id }
                 });
             });
-        } else {
-            // Receiver (Teacher) adds local stream
-            const stream = videoRef.current?.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => pc.addTrack(track, stream));
-            }
         }
 
-        peerRef.current = pc;
+        peersRef.current.set(targetId, pc);
         return pc;
     };
 
@@ -477,6 +556,12 @@ export default function WhiteboardPage() {
             onTouchMove={(e) => { if (draggingId) { e.preventDefault(); handleObjectDrag(e, draggingId); } }}
             onTouchEnd={() => setDraggingId(null)}
         >
+            {/* Hidden Audio Elements */}
+            <div style={{ display: 'none' }}>
+                {remoteAudios.map(ra => (
+                    <audio key={ra.userId} autoPlay ref={el => { if (el) el.srcObject = ra.stream; }} />
+                ))}
+            </div>
             <div className={`${styles.mainArea} ${remoteStream || isSharing ? styles.withVideo : ''}`}>
                 <canvas
                     onMouseDown={startDrawing}
@@ -547,7 +632,7 @@ export default function WhiteboardPage() {
                 </div>
             </div>
 
-            <div className={`${styles.toolbar} ${!isToolbarOpen ? styles.collapsed : ''} glass`}>
+            <div className={`${styles.toolbar} glass`}>
                 <div className={styles.sidebarRail}>
                     <button
                         className={`${styles.railBtn} ${activeSection === 'draw' ? styles.active : ''}`}
@@ -564,129 +649,168 @@ export default function WhiteboardPage() {
                         <PlusCircle size={22} />
                     </button>
                     <button
+                        className={`${styles.railBtn} ${activeSection === 'voice' ? styles.active : ''}`}
+                        onClick={() => setActiveSection('voice')}
+                        title="Voice Call"
+                    >
+                        <Users size={22} />
+                    </button>
+                    <button
                         className={`${styles.railBtn} ${activeSection === 'settings' ? styles.active : ''}`}
                         onClick={() => setActiveSection('settings')}
                         title="Board Controls"
                     >
                         <Settings size={22} />
                     </button>
-                    <div style={{ flex: 1 }} />
-                    <button
-                        className={styles.railBtn}
-                        onClick={() => setIsToolbarOpen(!isToolbarOpen)}
-                        title={isToolbarOpen ? 'Collapse' : 'Expand'}
-                    >
-                        {isToolbarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                    </button>
                 </div>
 
-                {isToolbarOpen && (
-                    <div className={styles.inspector}>
-                        {activeSection === 'draw' && (
-                            <>
-                                <h4>Drawing Tools</h4>
-                                <div className={styles.toolGrid}>
-                                    <button
-                                        className={`${styles.toolItem} ${tool === 'pencil' ? styles.active : ''}`}
-                                        onClick={() => setTool('pencil')}
-                                    >
-                                        <Pencil size={18} />
-                                        <span>Pencil</span>
-                                    </button>
-                                    <button
-                                        className={`${styles.toolItem} ${tool === 'eraser' ? styles.active : ''}`}
-                                        onClick={() => setTool('eraser')}
-                                    >
-                                        <Eraser size={18} />
-                                        <span>Eraser</span>
-                                    </button>
-                                </div>
-                                <div className={styles.propertyRow}>
-                                    <label>Stroke Width <span>{lineWidth}px</span></label>
-                                    <input
-                                        type="range" min="1" max="50"
-                                        value={lineWidth}
-                                        onChange={(e) => setLineWidth(parseInt(e.target.value))}
-                                        className={styles.slider}
-                                    />
-                                </div>
-                                <div className={styles.propertyRow}>
-                                    <label>Colors</label>
-                                    <div className={styles.colors}>
-                                        {['#00f2fe', '#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#fef08a', '#ffffff', '#94a3b8', '#64748b', '#ef4444', '#f59e0b', '#0a0a0c'].map(c => (
-                                            <button
-                                                key={c}
-                                                style={{ background: c, width: '22px', height: '22px', borderRadius: '50%', border: color === c ? '2px solid #fff' : 'none', cursor: 'pointer' }}
-                                                onClick={() => setColor(c)}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className={styles.divider} />
-                                <div className={styles.historyTools}>
-                                    <button className={styles.railBtn} onClick={undo} disabled={undoStack.length === 0} title="Undo">
-                                        <Undo2 size={18} />
-                                    </button>
-                                    <button className={styles.railBtn} onClick={redo} disabled={redoStack.length === 0} title="Redo">
-                                        <Redo2 size={18} />
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {activeSection === 'objects' && (
-                            <>
-                                <h4>Insert Elements</h4>
-                                <div className={styles.toolGrid}>
-                                    <button className={styles.toolItem} onClick={() => createObject('sticky')}>
-                                        <StickyNote size={18} />
-                                        <span>Sticky</span>
-                                    </button>
-                                    <button className={styles.toolItem} onClick={() => createObject('rect')}>
-                                        <Square size={18} />
-                                        <span>Box</span>
-                                    </button>
-                                    <button className={styles.toolItem} onClick={() => createObject('circle')}>
-                                        <Circle size={18} />
-                                        <span>Circle</span>
-                                    </button>
-                                    <button className={styles.toolItem} onClick={() => createObject('text')}>
-                                        <Type size={18} />
-                                        <span>Text</span>
-                                    </button>
-                                </div>
-                            </>
-                        )}
-
-                        {activeSection === 'settings' && (
-                            <>
-                                <h4>Board Controls</h4>
-                                <div className={styles.toolGrid}>
-                                    <button className={styles.toolItem} onClick={clearCanvas}>
-                                        <Trash2 size={18} />
-                                        <span>Clear Board</span>
-                                    </button>
-                                    <button className={styles.toolItem} onClick={downloadBoard}>
-                                        <Download size={18} />
-                                        <span>Export PNG</span>
-                                    </button>
-                                </div>
-                                {role === 'teacher' && (
-                                    <div className={styles.propertyRow} style={{ marginTop: '10px' }}>
+                <div className={styles.inspector}>
+                    {activeSection === 'draw' && (
+                        <>
+                            <h4>Drawing Tools</h4>
+                            <div className={styles.toolGrid}>
+                                <button
+                                    className={`${styles.toolItem} ${tool === 'pencil' ? styles.active : ''}`}
+                                    onClick={() => setTool('pencil')}
+                                >
+                                    <Pencil size={18} />
+                                    <span>Pencil</span>
+                                </button>
+                                <button
+                                    className={`${styles.toolItem} ${tool === 'eraser' ? styles.active : ''}`}
+                                    onClick={() => setTool('eraser')}
+                                >
+                                    <Eraser size={18} />
+                                    <span>Eraser</span>
+                                </button>
+                            </div>
+                            <div className={styles.propertyRow}>
+                                <label>Stroke Width <span>{lineWidth}px</span></label>
+                                <input
+                                    type="range" min="1" max="50"
+                                    value={lineWidth}
+                                    onChange={(e) => setLineWidth(parseInt(e.target.value))}
+                                    className={styles.slider}
+                                />
+                            </div>
+                            <div className={styles.propertyRow}>
+                                <label>Colors</label>
+                                <div className={styles.colors}>
+                                    {['#00f2fe', '#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#fef08a', '#ffffff', '#94a3b8', '#64748b', '#ef4444', '#f59e0b', '#0a0a0c'].map(c => (
                                         <button
-                                            className={`btn-primary ${isSharing ? styles.activeShare : ''}`}
-                                            onClick={isSharing ? stopScreenShare : startScreenShare}
-                                            style={{ width: '100%', padding: '12px', fontSize: '0.8rem' }}
-                                        >
-                                            <Maximize size={18} />
-                                            <span>{isSharing ? 'Stop Sharing' : 'Share Screen'}</span>
-                                        </button>
-                                    </div>
+                                            key={c}
+                                            style={{ background: c, width: '22px', height: '22px', borderRadius: '50%', border: color === c ? '2px solid #fff' : 'none', cursor: 'pointer' }}
+                                            onClick={() => setColor(c)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                            <div className={styles.divider} />
+                            <div className={styles.historyTools}>
+                                <button className={styles.railBtn} onClick={undo} disabled={undoStack.length === 0} title="Undo">
+                                    <Undo2 size={18} />
+                                </button>
+                                <button className={styles.railBtn} onClick={redo} disabled={redoStack.length === 0} title="Redo">
+                                    <Redo2 size={18} />
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {activeSection === 'voice' && (
+                        <>
+                            <h4>Voice Collaboration</h4>
+                            <div className={styles.voiceHub}>
+                                {!isInVoice ? (
+                                    <button className="btn-primary" onClick={joinVoice} style={{ width: '100%', marginBottom: '15px' }}>
+                                        Join Voice Call
+                                    </button>
+                                ) : (
+                                    <>
+                                        <div className={styles.voiceStatus}>
+                                            <div className={styles.pulse} />
+                                            <span>You are in the call</span>
+                                        </div>
+                                        <div className={styles.toolGrid}>
+                                            <button className={`${styles.toolItem} ${!isMicOn ? styles.muted : ''}`} onClick={toggleMic}>
+                                                {isMicOn ? <Mic size={18} /> : <MicOff size={18} />}
+                                                <span>{isMicOn ? 'Mute' : 'Unmute'}</span>
+                                            </button>
+                                            <button className={`${styles.toolItem} ${styles.leaveVoice}`} onClick={leaveVoice}>
+                                                <PhoneOff size={18} />
+                                                <span>Leave</span>
+                                            </button>
+                                        </div>
+                                    </>
                                 )}
-                            </>
-                        )}
-                    </div>
-                )}
+                            </div>
+                            <div className={styles.voiceParticipants}>
+                                <label>Participants ({remoteAudios.length + (isInVoice ? 1 : 0)})</label>
+                                <div className={styles.participantList}>
+                                    {isInVoice && <div className={styles.participantItem}><div className={styles.statusDot} /> <span>(You)</span></div>}
+                                    {remoteAudios.map(ra => (
+                                        <div key={ra.userId} className={styles.participantItem}>
+                                            <div className={styles.statusDot} />
+                                            <span>{activeUsers.find(u => u.user_id === ra.userId)?.name || 'User'}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {activeSection === 'objects' && (
+                        <>
+                            <h4>Insert Elements</h4>
+                            <div className={styles.toolGrid}>
+                                <button className={styles.toolItem} onClick={() => createObject('sticky')}>
+                                    <StickyNote size={18} />
+                                    <span>Sticky</span>
+                                </button>
+                                <button className={styles.toolItem} onClick={() => createObject('rect')}>
+                                    <Square size={18} />
+                                    <span>Box</span>
+                                </button>
+                                <button className={styles.toolItem} onClick={() => createObject('circle')}>
+                                    <Circle size={18} />
+                                    <span>Circle</span>
+                                </button>
+                                <button className={styles.toolItem} onClick={() => createObject('text')}>
+                                    <Type size={18} />
+                                    <span>Text</span>
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {activeSection === 'settings' && (
+                        <>
+                            <h4>Board Controls</h4>
+                            <div className={styles.toolGrid}>
+                                <button className={styles.toolItem} onClick={clearCanvas}>
+                                    <Trash2 size={18} />
+                                    <span>Clear Board</span>
+                                </button>
+                                <button className={styles.toolItem} onClick={downloadBoard}>
+                                    <Download size={18} />
+                                    <span>Export PNG</span>
+                                </button>
+                            </div>
+                            {role === 'teacher' && (
+                                <div className={styles.propertyRow} style={{ marginTop: '10px' }}>
+                                    <button
+                                        className={`btn-primary ${isSharing ? styles.activeShare : ''}`}
+                                        onClick={isSharing ? stopScreenShare : startScreenShare}
+                                        style={{ width: '100%', padding: '12px', fontSize: '0.8rem' }}
+                                    >
+                                        <Maximize size={18} />
+                                        <span>{isSharing ? 'Stop Sharing' : 'Share Screen'}</span>
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
 
             <div className={styles.userList}>

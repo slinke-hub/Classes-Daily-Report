@@ -46,17 +46,6 @@
     overflow: hidden;
 }
 
-.collapsed {
-    left: -10px;
-    /* Hide the inspector space but keep the rail visible */
-    transform: translateY(-50%) translateX(-55px);
-    /* Slide it out */
-}
-
-.collapsed:hover {
-    transform: translateY(-50%) translateX(-45px);
-}
-
 .sidebarRail {
     width: 65px;
     background: rgba(255, 255, 255, 0.03);
@@ -79,13 +68,6 @@
         flex-direction: column-reverse;
         /* Inspector above rail */
         border-radius: 24px;
-    }
-
-    .collapsed {
-        bottom: -15px;
-        /* Keep part of the rail visible */
-        left: 50%;
-        transform: translateX(-50%) translateY(50px);
     }
 
     .sidebarRail {
@@ -393,29 +375,6 @@
     }
 }
 
-.collapsed .railBtn:last-child {
-    background: rgba(0, 242, 254, 0.2) !important;
-    color: var(--primary) !important;
-    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
-    border: 1px solid rgba(0, 242, 254, 0.3) !important;
-}
-
-@media (min-width: 769px) {
-    .collapsed .railBtn:last-child {
-        transform: translateX(54px);
-        /* Stick out to the right */
-        border-radius: 0 10px 10px 0;
-    }
-}
-
-@media (max-width: 768px) {
-    .collapsed .railBtn:last-child {
-        transform: translateY(-48px);
-        /* Stick out upwards on mobile */
-        border-radius: 10px 10px 0 0;
-    }
-}
-
 .userBubble {
     width: 40px;
     height: 40px;
@@ -446,4 +405,86 @@
     to {
         transform: scale(1);
     }
+}
+
+/* Voice Call UI */
+.voiceHub {
+    padding: 10px 0;
+}
+
+.voiceStatus {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.voiceStatus span {
+    font-size: 0.8rem;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.pulse {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+    animation: voiceActivePulse 1.5s infinite;
+}
+
+@keyframes voiceActivePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.muted {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+}
+
+.leaveVoice {
+    color: #ef4444 !important;
+}
+
+.voiceParticipants {
+    margin-top: 20px;
+}
+
+.voiceParticipants label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    display: block;
+}
+
+.participantItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.statusDot {
+    width: 6px;
+    height: 6px;
+    background: #10b981;
+    border-radius: 50%;
 }
