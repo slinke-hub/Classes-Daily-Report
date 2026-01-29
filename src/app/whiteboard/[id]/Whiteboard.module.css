@@ -47,7 +47,14 @@
 }
 
 .collapsed {
-    left: -60px;
+    left: -10px;
+    /* Hide the inspector space but keep the rail visible */
+    transform: translateY(-50%) translateX(-55px);
+    /* Slide it out */
+}
+
+.collapsed:hover {
+    transform: translateY(-50%) translateX(-45px);
 }
 
 .sidebarRail {
@@ -75,8 +82,10 @@
     }
 
     .collapsed {
-        bottom: -100px;
+        bottom: -15px;
+        /* Keep part of the rail visible */
         left: 50%;
+        transform: translateX(-50%) translateY(50px);
     }
 
     .sidebarRail {
@@ -381,6 +390,29 @@
     .presence span {
         display: none;
         /* Hide text on mobile */
+    }
+}
+
+.collapsed .railBtn:last-child {
+    background: rgba(0, 242, 254, 0.2) !important;
+    color: var(--primary) !important;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+    border: 1px solid rgba(0, 242, 254, 0.3) !important;
+}
+
+@media (min-width: 769px) {
+    .collapsed .railBtn:last-child {
+        transform: translateX(54px);
+        /* Stick out to the right */
+        border-radius: 0 10px 10px 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .collapsed .railBtn:last-child {
+        transform: translateY(-48px);
+        /* Stick out upwards on mobile */
+        border-radius: 10px 10px 0 0;
     }
 }
 
