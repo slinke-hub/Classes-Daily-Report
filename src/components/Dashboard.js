@@ -16,36 +16,50 @@ export default function Dashboard() {
     useEffect(() => {
         if (user) {
             fetchReports();
-            if (role === 'student') {
-                fetchStudentInfo();
+            if (role === 'student' || role === 'teacher') {
+                fetchScheduleInfo();
             }
         }
     }, [user, role]);
 
-    const fetchStudentInfo = async () => {
-        // Get teacher info
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('teacher_id')
-            .eq('id', user.id)
-            .single();
-
-        if (profile?.teacher_id) {
-            const { data: teacherData } = await supabase
+    const fetchScheduleInfo = async () => {
+        if (role === 'student') {
+            // Get teacher info for student
+            const { data: profileList } = await supabase
                 .from('profiles')
-                .select('*')
-                .eq('id', profile.teacher_id)
-                .single();
-            setTeacher(teacherData);
-        }
+                .select('teacher_id')
+                .eq('id', user.id);
 
-        // Get schedules
-        const { data: schData } = await supabase
-            .from('schedules')
-            .select('*')
-            .eq('student_id', user.id)
-            .order('start_time', { ascending: true });
-        setSchedules(schData || []);
+            const profile = profileList?.[0];
+
+            if (profile?.teacher_id) {
+                const { data: teacherList } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', profile.teacher_id);
+                setTeacher(teacherList?.[0]);
+            }
+
+            // Get student's schedules
+            const { data: schData } = await supabase
+                .from('schedules')
+                .select('*')
+                .eq('student_id', user.id)
+                .order('start_time', { ascending: true })
+                .gte('start_time', new Date().toISOString())
+                .limit(5);
+            setSchedules(schData || []);
+        } else if (role === 'teacher') {
+            // Get teacher's schedules
+            const { data: schData } = await supabase
+                .from('schedules')
+                .select('*')
+                .eq('teacher_id', user.id)
+                .order('start_time', { ascending: true })
+                .gte('start_time', new Date().toISOString())
+                .limit(5);
+            setSchedules(schData || []);
+        }
     };
 
     const fetchReports = async () => {
@@ -83,16 +97,23 @@ export default function Dashboard() {
 
     return (
         <div className={styles.container}>
-            {role === 'student' && (
+            {(role === 'student' || role === 'teacher') && (
                 <div className={styles.studentStats}>
                     <div className={styles.statCard}>
-                        <h4>Your Teacher</h4>
-                        {teacher ? (
+                        <h4>{role === 'student' ? 'Your Teacher' : 'Teacher View'}</h4>
+                        {role === 'student' ? (
+                            teacher ? (
+                                <div className={styles.teacherInfo}>
+                                    <span>{teacher.full_name || teacher.email}</span>
+                                    <Link href={`/chat?with=${teacher.id}`} className={`${styles.chatBtn} btn-primary`}>Chat Now</Link>
+                                </div>
+                            ) : <p>No teacher assigned.</p>
+                        ) : (
                             <div className={styles.teacherInfo}>
-                                <span>{teacher.email}</span>
-                                <Link href={`/chat?with=${teacher.id}`} className={`${styles.chatBtn} btn-primary`}>Chat Now</Link>
+                                <p>Welcome back, {user.email.split('@')[0]}!</p>
+                                <Link href="/tools" className={`${styles.chatBtn} btn-primary`}>Teaching Workshop</Link>
                             </div>
-                        ) : <p>No teacher assigned.</p>}
+                        )}
                     </div>
                     <div className={styles.statCard}>
                         <h4>Upcoming Classes</h4>

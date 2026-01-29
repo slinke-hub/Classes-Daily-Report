@@ -4,15 +4,16 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Lock, Camera, BookOpen, GraduationCap, ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, Camera, BookOpen, GraduationCap, ArrowLeft, Save, Loader2, Shield } from 'lucide-react';
 import styles from './Profile.module.css';
 
 export default function ProfilePage() {
-    const { user, role, loading: authLoading } = useAuth();
+    const { user, profile: globalProfile, role, refreshProfile, loading: authLoading } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [showSqlHelp, setShowSqlHelp] = useState(false);
 
     // Profile State
     const [profile, setProfile] = useState({
@@ -31,7 +32,8 @@ export default function ProfilePage() {
     const [stats, setStats] = useState({
         reportsCount: 0,
         coursesCount: 0,
-        teachers: []
+        teachers: [],
+        students: []
     });
 
     useEffect(() => {
@@ -40,18 +42,29 @@ export default function ProfilePage() {
             return;
         }
         if (user) {
-            fetchProfile();
+            if (globalProfile) {
+                setProfile({
+                    full_name: globalProfile.full_name || '',
+                    phone_number: globalProfile.phone_number || '',
+                    gender: globalProfile.gender || '',
+                    country: globalProfile.country || '',
+                    avatar_url: globalProfile.avatar_url || ''
+                });
+            } else {
+                fetchProfile();
+            }
             fetchStats();
             setEmail(user.email);
         }
-    }, [user, authLoading, router]);
+    }, [user, globalProfile, authLoading, router]);
 
     const fetchProfile = async () => {
-        const { data, error } = await supabase
+        const { data: profileList, error } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', user.id)
-            .maybeSingle();
+            .eq('id', user.id);
+
+        const data = profileList?.[0];
 
         if (data) {
             setProfile({
@@ -65,46 +78,120 @@ export default function ProfilePage() {
     };
 
     const fetchStats = async () => {
-        // Fetch reports count
-        const { count: reportsCount } = await supabase
-            .from('gpa_reports')
-            .select('*', { count: 'exact', head: true })
-            .eq('student_id', user.id);
-
-        // Fetch teachers
-        const { data: profileData } = await supabase
-            .from('profiles')
-            .select('teacher_id')
-            .eq('id', user.id)
-            .maybeSingle();
-
-        let teacherList = [];
-        if (profileData?.teacher_id) {
-            const { data: teacherData } = await supabase
+        if (role === 'teacher') {
+            // Fetch students assigned to this teacher
+            const { data: studentData } = await supabase
                 .from('profiles')
                 .select('full_name, email')
-                .eq('id', profileData.teacher_id)
-                .maybeSingle();
-            if (teacherData) teacherList.push(teacherData);
-        }
+                .eq('teacher_id', user.id);
 
-        setStats({
-            reportsCount: reportsCount || 0,
-            coursesCount: Math.ceil(reportsCount / 5), // Mock calculation
-            teachers: teacherList
-        });
+            // Fetch total reports issued for these students
+            let totalIssued = 0;
+            const studentEmails = studentData?.map(s => s.email) || [];
+            if (studentEmails.length > 0) {
+                const { count } = await supabase
+                    .from('gpa_reports')
+                    .select('*', { count: 'exact', head: true })
+                    .in('student_email', studentEmails);
+                totalIssued = count || 0;
+            }
+
+            setStats({
+                reportsCount: totalIssued,
+                coursesCount: studentData?.length || 0,
+                teachers: [],
+                students: studentData || []
+            });
+        } else {
+            // Fetch reports count for student
+            const { count: reportsCount } = await supabase
+                .from('gpa_reports')
+                .select('*', { count: 'exact', head: true })
+                .eq('student_email', user.email);
+
+            // Fetch teachers assigned to this student
+            const { data: profileList } = await supabase
+                .from('profiles')
+                .select('teacher_id')
+                .eq('id', user.id);
+
+            const profileData = profileList?.[0];
+
+            let teacherList = [];
+            if (profileData?.teacher_id) {
+                const { data: teacherList } = await supabase
+                    .from('profiles')
+                    .select('full_name, email')
+                    .eq('id', profileData.teacher_id);
+
+                const teacherData = teacherList?.[0];
+                if (teacherData) teacherList.push(teacherData);
+            }
+
+            setStats({
+                reportsCount: reportsCount || 0,
+                coursesCount: Math.ceil(reportsCount / 5), // Mock calculation
+                teachers: teacherList,
+                students: []
+            });
+        }
     };
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const { error } = await supabase
+        const { data: updatedList, error } = await supabase
             .from('profiles')
             .update(profile)
-            .eq('id', user.id);
+            .eq('id', user.id)
+            .select('*');
 
-        if (error) setMessage({ type: 'error', text: error.message });
-        else setMessage({ type: 'success', text: 'Profile updated successfully!' });
+        const updated = updatedList?.[0];
+
+        if (error) {
+            setMessage({ type: 'error', text: error.message });
+        } else if (!updated) {
+            // If update failed, try inserting (in case the record is missing)
+            const { data: insertedList, error: insertError } = await supabase
+                .from('profiles')
+                .insert([{
+                    id: user.id,
+                    email: user.email,
+                    role: role || 'student',
+                    ...profile
+                }])
+                .select('*');
+
+            if (insertError) {
+                setMessage({ type: 'error', text: 'Database Permission Error: Could not create your profile record.' });
+                setShowSqlHelp(true);
+            } else {
+                const inserted = insertedList?.[0];
+                if (inserted) {
+                    setProfile({
+                        full_name: inserted.full_name || '',
+                        phone_number: inserted.phone_number || '',
+                        gender: inserted.gender || '',
+                        country: inserted.country || '',
+                        avatar_url: inserted.avatar_url || ''
+                    });
+                    setShowSqlHelp(false);
+                }
+                setMessage({ type: 'success', text: 'Profile created and updated successfully!' });
+                await refreshProfile();
+            }
+        } else {
+            setShowSqlHelp(false);
+            setProfile({
+                full_name: updated.full_name || '',
+                phone_number: updated.phone_number || '',
+                gender: updated.gender || '',
+                country: updated.country || '',
+                avatar_url: updated.avatar_url || ''
+            });
+            setMessage({ type: 'success', text: 'Profile updated successfully!' });
+            await refreshProfile();
+        }
         setLoading(false);
     };
 
@@ -145,15 +232,42 @@ export default function ProfilePage() {
                 .from('avatars')
                 .getPublicUrl(filePath);
 
-            const { error: updateError } = await supabase
+            const { data: updatedList, error: updateError } = await supabase
                 .from('profiles')
                 .update({ avatar_url: publicUrl })
-                .eq('id', user.id);
+                .eq('id', user.id)
+                .select('*');
 
-            if (updateError) throw updateError;
+            let updatedRow = updatedList?.[0];
 
-            setProfile({ ...profile, avatar_url: publicUrl });
+            if (!updatedRow && !updateError) {
+                const { data: insertedList, error: insertError } = await supabase
+                    .from('profiles')
+                    .insert([{
+                        id: user.id,
+                        email: user.email,
+                        role: role || 'student',
+                        avatar_url: publicUrl,
+                        ...profile
+                    }])
+                    .select('*');
+
+                if (insertError) {
+                    setShowSqlHelp(true);
+                    throw insertError;
+                }
+                updatedRow = insertedList?.[0];
+            } else if (updateError) {
+                throw updateError;
+            }
+
+            await supabase.auth.updateUser({
+                data: { avatar_url: publicUrl }
+            });
+
+            setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
             setMessage({ type: 'success', text: 'Avatar updated!' });
+            await refreshProfile();
         } catch (error) {
             setMessage({ type: 'error', text: 'Error uploading avatar: ' + error.message });
         } finally {
@@ -178,13 +292,35 @@ export default function ProfilePage() {
                 </div>
             )}
 
+            {showSqlHelp && (
+                <div className={`${styles.sqlHelp} glass slide-up`}>
+                    <h4><Shield size={18} /> Database Action Required</h4>
+                    <p>Your database is missing the permission policy that allows users to create their own profiles. To fix this "Profile not found" error permanently, copy and run this SQL in your <strong>Supabase SQL Editor</strong>:</p>
+                    <pre className={styles.codeBlock}>
+                        {`CREATE POLICY "Users can insert own profile" 
+ON profiles FOR INSERT 
+WITH CHECK (auth.uid() = id);
+
+-- Also ensure update is allowed
+CREATE POLICY "Users can update own profile" 
+ON profiles FOR UPDATE 
+USING (auth.uid() = id);`}
+                    </pre>
+                    <button className="btn-secondary" onClick={() => setShowSqlHelp(false)}>Dismiss</button>
+                </div>
+            )}
+
             <div className={styles.grid}>
                 {/* Left Column: Personal Info */}
                 <div className={`${styles.section} glass fade-in`}>
                     <div className={styles.avatarWrap}>
                         <div className={styles.avatar}>
                             {profile.avatar_url ? (
-                                <img src={profile.avatar_url} alt="Avatar" />
+                                <img
+                                    key={profile.avatar_url}
+                                    src={profile.avatar_url}
+                                    alt="Avatar"
+                                />
                             ) : (
                                 <span>{user?.email?.[0].toUpperCase()}</span>
                             )}
@@ -245,32 +381,37 @@ export default function ProfilePage() {
                 <div className={styles.rightCol}>
                     {/* Progress Stats */}
                     <div className={`${styles.section} glass fade-in`} style={{ animationDelay: '0.1s' }}>
-                        <h2 className={styles.secTitle}><GraduationCap size={20} /> Academic Progress</h2>
+                        <h2 className={styles.secTitle}>
+                            {role === 'teacher' ? <BookOpen size={20} /> : <GraduationCap size={20} />}
+                            {role === 'teacher' ? 'Teaching Overview' : 'Academic Progress'}
+                        </h2>
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
                                 <h3>{stats.reportsCount}</h3>
-                                <p>Reports Created</p>
+                                <p>{role === 'teacher' ? 'Reports Issued' : 'Reports Created'}</p>
                             </div>
                             <div className={styles.statCard}>
                                 <h3>{stats.coursesCount}</h3>
-                                <p>Courses Enrolled</p>
+                                <p>{role === 'teacher' ? 'Students Managed' : 'Courses Enrolled'}</p>
                             </div>
                         </div>
 
                         <div className={styles.teachersBox}>
-                            <h4>My Teachers</h4>
-                            {stats.teachers.length > 0 ? (
-                                stats.teachers.map((t, i) => (
+                            <h4>{role === 'teacher' ? 'My Students' : 'My Teachers'}</h4>
+                            {(role === 'teacher' ? stats.students : stats.teachers).length > 0 ? (
+                                (role === 'teacher' ? stats.students : stats.teachers).map((person, i) => (
                                     <div key={i} className={styles.teacherItem}>
                                         <div className={styles.tIcon}><User size={16} /></div>
                                         <div>
-                                            <p className={styles.tName}>{t.full_name || 'Teacher'}</p>
-                                            <p className={styles.tEmail}>{t.email}</p>
+                                            <p className={styles.tName}>{person.full_name || (role === 'teacher' ? 'Student' : 'Teacher')}</p>
+                                            <p className={styles.tEmail}>{person.email}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className={styles.noTeacher}>No teachers assigned yet.</p>
+                                <p className={styles.noTeacher}>
+                                    {role === 'teacher' ? 'No students assigned yet.' : 'No teachers assigned yet.'}
+                                </p>
                             )}
                         </div>
                     </div>

@@ -2,8 +2,8 @@ import './globals.css';
 import AuthWrapper from '../components/AuthWrapper';
 
 export const metadata = {
-    title: 'GPA Reports | Premium Mastery',
-    description: 'Track your academic journey with style and precision.',
+    title: 'My Class | Tracking Success',
+    description: 'Manage your classes, homework, and quizzes with style.',
 };
 
 import Navbar from '../components/Navbar';

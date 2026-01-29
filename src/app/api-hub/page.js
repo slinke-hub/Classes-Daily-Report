@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Code, Key, Book, ExternalLink, Trash2, Copy, Check, Eye, EyeOff, Plus } from 'lucide-react';
+import CustomDialog from '../../components/CustomDialog';
 import styles from './Api.module.css';
 
 export default function ApiPage() {
@@ -13,6 +14,14 @@ export default function ApiPage() {
     const [generatedKey, setGeneratedKey] = useState(null);
     const [loading, setLoading] = useState(true);
     const [copySuccess, setCopySuccess] = useState(false);
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
+    });
 
     useEffect(() => {
         if (role === 'admin') {
@@ -47,7 +56,14 @@ export default function ApiPage() {
             .select();
 
         if (error) {
-            alert(error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Key Generation Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } else {
             setGeneratedKey(secret);
             setNewKeyName('');
@@ -56,18 +72,33 @@ export default function ApiPage() {
     };
 
     const revokeKey = async (id) => {
-        if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) return;
+        setDialog({
+            isOpen: true,
+            title: 'Revoke API Key?',
+            message: 'Are you sure you want to revoke this API key? Applications using this key will lose access immediately.',
+            type: 'confirm',
+            variant: 'warning',
+            onConfirm: async () => {
+                const { error } = await supabase
+                    .from('api_keys')
+                    .delete()
+                    .eq('id', id);
 
-        const { error } = await supabase
-            .from('api_keys')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            alert(error.message);
-        } else {
-            fetchKeys();
-        }
+                if (error) {
+                    setDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: error.message,
+                        type: 'alert',
+                        variant: 'warning',
+                        onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                    });
+                } else {
+                    setDialog(prev => ({ ...prev, isOpen: false }));
+                    fetchKeys();
+                }
+            }
+        });
     };
 
     const copyToClipboard = (text) => {
@@ -183,6 +214,12 @@ export default function ApiPage() {
 }`}
                 </pre>
             </div>
-        </div>
+            </div>
+
+            <CustomDialog 
+                {...dialog} 
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))} 
+            />
+        </div >
     );
 }

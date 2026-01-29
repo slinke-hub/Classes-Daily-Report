@@ -9,6 +9,7 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Schedule.module.css';
 import { Plus, X, Trash2, Calendar as CalendarIcon, Clock, Type, User as UserIcon } from 'lucide-react';
+import CustomDialog from '../../components/CustomDialog';
 
 export default function SchedulePage() {
     const { user, role } = useAuth();
@@ -17,6 +18,16 @@ export default function SchedulePage() {
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [currentEventId, setCurrentEventId] = useState(null);
+
+    // Dialog State
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
+    });
 
     const [newEvent, setNewEvent] = useState({
         topic: '',
@@ -69,6 +80,7 @@ export default function SchedulePage() {
                     extendedProps: { ...s },
                     backgroundColor: color,
                     borderColor: 'transparent',
+                    textColor: '#ffffff',
                     className: styles.fcEvent
                 };
             });
@@ -144,12 +156,30 @@ export default function SchedulePage() {
                 .from('schedules')
                 .update(payload)
                 .eq('id', currentEventId);
-            if (error) alert(error.message);
+            if (error) {
+                setDialog({
+                    isOpen: true,
+                    title: 'Update Error',
+                    message: error.message,
+                    type: 'alert',
+                    variant: 'warning',
+                    onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                });
+            }
         } else {
             const { error } = await supabase
                 .from('schedules')
                 .insert([payload]);
-            if (error) alert(error.message);
+            if (error) {
+                setDialog({
+                    isOpen: true,
+                    title: 'Creation Error',
+                    message: error.message,
+                    type: 'alert',
+                    variant: 'warning',
+                    onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                });
+            }
         }
 
         setShowModal(false);
@@ -157,18 +187,34 @@ export default function SchedulePage() {
     };
 
     const handleDelete = async () => {
-        if (!confirm('Are you sure you want to delete this?')) return;
+        setDialog({
+            isOpen: true,
+            title: 'Delete Entry?',
+            message: 'Are you sure you want to remove this schedule from the calendar?',
+            type: 'confirm',
+            variant: 'warning',
+            onConfirm: async () => {
+                const { error } = await supabase
+                    .from('schedules')
+                    .delete()
+                    .eq('id', currentEventId);
 
-        const { error } = await supabase
-            .from('schedules')
-            .delete()
-            .eq('id', currentEventId);
-
-        if (error) alert(error.message);
-        else {
-            setShowModal(false);
-            fetchSchedule();
-        }
+                if (error) {
+                    setDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: error.message,
+                        type: 'alert',
+                        variant: 'warning',
+                        onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                    });
+                } else {
+                    setDialog(prev => ({ ...prev, isOpen: false }));
+                    setShowModal(false);
+                    fetchSchedule();
+                }
+            }
+        });
     };
 
     return (
@@ -200,13 +246,17 @@ export default function SchedulePage() {
                     dayMaxEvents={true}
                     select={handleDateSelect}
                     eventClick={handleEventClick}
+                    eventDisplay="block"
                     height="750px"
                 />
             </div>
 
             {showModal && (
                 <div className={styles.modalOverlay}>
-                    <div className={`${styles.modal} glass slide-up`}>
+                    <div
+                        className={`${styles.modal} glass slide-up`}
+                        style={{ boxShadow: `0 0 40px ${newEvent.color}33`, borderColor: `${newEvent.color}66` }}
+                    >
                         <div className={styles.modalHeader}>
                             <h2>{editMode ? 'Edit Entry' : 'Schedule New Entry'}</h2>
                             <button className={styles.closeBtn} onClick={() => setShowModal(false)}><X /></button>
@@ -217,17 +267,17 @@ export default function SchedulePage() {
                                 <button
                                     type="button"
                                     className={`${styles.typeBtn} ${newEvent.type === 'class' ? styles.classActive : ''}`}
-                                    onClick={() => setNewEvent({ ...newEvent, type: 'class' })}
+                                    onClick={() => setNewEvent({ ...newEvent, type: 'class', color: '#00f2fe' })}
                                 >Class</button>
                                 <button
                                     type="button"
                                     className={`${styles.typeBtn} ${newEvent.type === 'event' ? styles.eventActive : ''}`}
-                                    onClick={() => setNewEvent({ ...newEvent, type: 'event' })}
+                                    onClick={() => setNewEvent({ ...newEvent, type: 'event', color: '#7c3aed' })}
                                 >Event</button>
                                 <button
                                     type="button"
                                     className={`${styles.typeBtn} ${newEvent.type === 'reminder' ? styles.reminderActive : ''}`}
-                                    onClick={() => setNewEvent({ ...newEvent, type: 'reminder' })}
+                                    onClick={() => setNewEvent({ ...newEvent, type: 'reminder', color: '#ff007a' })}
                                 >Reminder</button>
                             </div>
 
@@ -327,6 +377,11 @@ export default function SchedulePage() {
                     </div>
                 </div>
             )}
+
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

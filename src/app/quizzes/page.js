@@ -5,6 +5,7 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Plus, ListChecks, Play, Clock, Award, Trash2 } from 'lucide-react';
+import CustomDialog from '../../components/CustomDialog';
 import styles from './Quizzes.module.css';
 
 export default function QuizzesPage() {
@@ -14,6 +15,14 @@ export default function QuizzesPage() {
     const [quizzes, setQuizzes] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newQuiz, setNewQuiz] = useState({ title: '', description: '', time_limit: '' });
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
+    });
 
     useEffect(() => {
         if (user) fetchQuizzes();
@@ -25,7 +34,7 @@ export default function QuizzesPage() {
             .from('quizzes')
             .select(`
                 *,
-                questions(count),
+                questions(id),
                 quiz_attempts(score, completed_at)
             `)
             .order('created_at', { ascending: false });
@@ -47,7 +56,14 @@ export default function QuizzesPage() {
             .single();
 
         if (error) {
-            alert('Error creating quiz: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Quiz Creation Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
             console.error(error);
             return;
         }
@@ -58,14 +74,29 @@ export default function QuizzesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('Are you sure you want to delete this quiz?')) {
-            const { error } = await supabase.from('quizzes').delete().eq('id', id);
-            if (error) {
-                alert('Error deleting quiz: ' + error.message);
-            } else {
-                fetchQuizzes();
+        setDialog({
+            isOpen: true,
+            title: 'Delete Quiz?',
+            message: 'Are you sure you want to delete this quiz? All associated questions will be lost.',
+            type: 'confirm',
+            variant: 'warning',
+            onConfirm: async () => {
+                const { error } = await supabase.from('quizzes').delete().eq('id', id);
+                if (error) {
+                    setDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: error.message,
+                        type: 'alert',
+                        variant: 'warning',
+                        onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                    });
+                } else {
+                    setDialog(prev => ({ ...prev, isOpen: false }));
+                    fetchQuizzes();
+                }
             }
-        }
+        });
     };
 
     if (loading) return <div className={styles.loading}>Loading Quizzes...</div>;
@@ -109,7 +140,7 @@ export default function QuizzesPage() {
                             <div className={styles.quizHeader}>
                                 <div className={styles.quizMeta}>
                                     <span className={styles.questionCount}>
-                                        {quiz.questions?.[0]?.count || 0} Questions
+                                        {quiz.questions?.length || 0} Questions
                                     </span>
                                     {quiz.time_limit && (
                                         <span className={styles.timeLimit}>
@@ -189,6 +220,11 @@ export default function QuizzesPage() {
                     </div>
                 </div>
             )}
+
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../utils/supabase';
 import { useAuth } from '../context/AuthContext';
 import TagInput from './TagInput';
+import CustomDialog from './CustomDialog';
 import styles from './ReportForm.module.css';
 
 export default function ReportForm() {
@@ -24,6 +25,14 @@ export default function ReportForm() {
         next_lesson: '',
         image_url: ''
     });
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
+    });
 
     useEffect(() => {
         if (role === 'teacher') {
@@ -34,7 +43,7 @@ export default function ReportForm() {
     const fetchMyStudents = async () => {
         const { data } = await supabase
             .from('profiles')
-            .select('email')
+            .select('id, email, full_name')
             .eq('teacher_id', user.id);
         setStudents(data || []);
     };
@@ -77,6 +86,7 @@ export default function ReportForm() {
                 .from('gpa_reports')
                 .insert([{
                     ...formData,
+                    teacher_id: user.id,
                     paid_amount: formData.paid_status ? parseFloat(formData.paid_amount) || 0 : 0,
                     image_url: finalImageUrl
                 }]);
@@ -86,7 +96,14 @@ export default function ReportForm() {
             router.push('/');
             router.refresh();
         } catch (error) {
-            alert('Error creating report: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Submission Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setLoading(false);
         }
@@ -99,21 +116,12 @@ export default function ReportForm() {
                 <input
                     type="date"
                     required
-                    value={formData.date}
+                    value={formData.date || ''}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                 />
             </div>
 
-            <div className={styles.formGroup}>
-                <label>Student Email</label>
-                <input
-                    type="email"
-                    required
-                    placeholder="student@example.com"
-                    value={formData.student_email}
-                    onChange={(e) => setFormData({ ...formData, student_email: e.target.value })}
-                />
-            </div>
+
 
             <div className={styles.formGroup}>
                 <label>Paid Status</label>
@@ -142,7 +150,7 @@ export default function ReportForm() {
                         type="number"
                         placeholder="0.00"
                         required
-                        value={formData.paid_amount}
+                        value={formData.paid_amount || ''}
                         onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
                         className={styles.amountInput}
                     />
@@ -153,7 +161,7 @@ export default function ReportForm() {
                 <label>Point of Focus</label>
                 <textarea
                     rows={3}
-                    value={formData.point_of_focus}
+                    value={formData.point_of_focus || ''}
                     onChange={(e) => setFormData({ ...formData, point_of_focus: e.target.value })}
                     placeholder="e.g. Grammar, Pronunciation..."
                 />
@@ -171,31 +179,31 @@ export default function ReportForm() {
                 <label>Homework</label>
                 <textarea
                     rows={3}
-                    value={formData.homework}
+                    value={formData.homework || ''}
                     onChange={(e) => setFormData({ ...formData, homework: e.target.value })}
                     placeholder="Assignment for next class..."
                 />
             </div>
 
             <div className={styles.formGroup}>
-                <label>Student Email</label>
+                <label>Select Student</label>
                 {role === 'teacher' ? (
                     <select
                         required
-                        value={formData.student_email}
+                        value={formData.student_email || ''}
                         onChange={(e) => setFormData({ ...formData, student_email: e.target.value })}
                         className={styles.select}
                     >
-                        <option value="">Select a student</option>
+                        <option value="">Choose a student</option>
                         {students.map(s => (
-                            <option key={s.email} value={s.email}>{s.email}</option>
+                            <option key={s.email} value={s.email}>{s.full_name || s.email}</option>
                         ))}
                     </select>
                 ) : (
                     <input
                         type="email"
                         required
-                        value={formData.student_email}
+                        value={formData.student_email || ''}
                         onChange={(e) => setFormData({ ...formData, student_email: e.target.value })}
                         placeholder="e.g. student@example.com"
                     />
@@ -206,7 +214,7 @@ export default function ReportForm() {
                 <label>Next Class Lesson</label>
                 <input
                     type="text"
-                    value={formData.next_lesson}
+                    value={formData.next_lesson || ''}
                     onChange={(e) => setFormData({ ...formData, next_lesson: e.target.value })}
                     placeholder="e.g. Chapter 5, Page 42"
                 />
@@ -227,6 +235,11 @@ export default function ReportForm() {
             <button type="submit" className={`${styles.submitBtn} btn-primary`} disabled={loading}>
                 {loading ? 'Saving...' : 'Create Report'}
             </button>
+
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </form>
     );
 }

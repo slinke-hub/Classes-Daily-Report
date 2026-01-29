@@ -13,6 +13,35 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [role, setRole] = useState(null);
 
+    const refreshProfile = async (currentUser = user) => {
+        if (!currentUser) return;
+
+        try {
+            const admins = ['monti.training@hotmail.com'];
+            let fetchedRole = 'student';
+            let fetchedProfile = null;
+
+            const { data: profileData } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id);
+
+            if (profileData && profileData.length > 0) {
+                fetchedProfile = profileData[0];
+                fetchedRole = fetchedProfile.role || 'student';
+            }
+
+            if (admins.includes(currentUser.email)) {
+                fetchedRole = 'admin';
+            }
+
+            setProfile(fetchedProfile);
+            setRole(fetchedRole);
+        } catch (err) {
+            console.error('Profile refresh error:', err);
+        }
+    };
+
     useEffect(() => {
         let isMounted = true;
 
@@ -28,29 +57,9 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                const admins = ['monti.training@hotmail.com'];
-                let fetchedRole = 'student';
-                let fetchedProfile = null;
-
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', currentUser.id)
-                    .maybeSingle();
-
-                if (data) {
-                    fetchedProfile = data;
-                    fetchedRole = data.role || 'student';
-                }
-
-                if (admins.includes(currentUser.email)) {
-                    fetchedRole = 'admin';
-                }
-
+                setUser(currentUser);
+                await refreshProfile(currentUser);
                 if (isMounted) {
-                    setUser(currentUser);
-                    setProfile(fetchedProfile);
-                    setRole(fetchedRole);
                     setLoading(false);
                 }
             } catch (err) {
@@ -65,11 +74,16 @@ export const AuthProvider = ({ children }) => {
 
         supabase.auth.getSession().then(({ data: { session } }) => {
             handleUserChange(session?.user ?? null);
+        }).catch(err => {
+            console.error('Session recovery failed:', err);
+            handleUserChange(null);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
                 handleUserChange(session?.user ?? null);
+            } else if (event === 'SIGNED_OUT') {
+                handleUserChange(null);
             } else if (session?.user) {
                 setUser(session.user);
             }
@@ -124,7 +138,7 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={{
-            user, profile, role, login, signup, logout, forgotPassword, updatePassword, loading
+            user, profile, role, login, signup, logout, forgotPassword, updatePassword, refreshProfile, loading
         }}>
             {loading && !user ? (
                 <div style={{

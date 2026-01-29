@@ -299,6 +299,42 @@
     animation: spin 1s linear infinite;
 }
 
+/* SQL Help Section */
+.sqlHelp {
+    margin-bottom: 30px;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    background: rgba(239, 68, 68, 0.05);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sqlHelp h4 {
+    color: var(--error);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sqlHelp p {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+
+.codeBlock {
+    background: rgba(0, 0, 0, 0.4) !important;
+    padding: 20px !important;
+    border-radius: 12px !important;
+    font-size: 0.85rem !important;
+    font-family: 'Consolas', 'Monaco', monospace !important;
+    color: var(--primary) !important;
+    overflow-x: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 @keyframes spin {
     from {
         transform: rotate(0deg);

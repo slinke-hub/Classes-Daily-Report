@@ -31,7 +31,7 @@ export default function Navbar() {
             <div className={styles.container}>
                 <div className={styles.left}>
                     <Link href="/" className={styles.logo}>
-                        GPA<span>Mastery</span>
+                        My<span>Class</span>
                     </Link>
                     <div className={styles.menu}>
                         <Link href="/" className={styles.navLink}>
@@ -60,10 +60,6 @@ export default function Navbar() {
                             <MessageSquare size={18} />
                             <span>Chat</span>
                         </Link>
-                        <Link href="/homework" className={styles.navLink}>
-                            <BookOpen size={18} />
-                            <span>Homework</span>
-                        </Link>
                         <Link href="/quizzes" className={styles.navLink}>
                             <ListChecks size={18} />
                             <span>Quizzes</span>
@@ -79,7 +75,12 @@ export default function Navbar() {
                         >
                             <div className={styles.avatar}>
                                 {profile?.avatar_url ? (
-                                    <img src={profile.avatar_url} alt="Profile" className={styles.avatarImg} />
+                                    <img
+                                        key={profile.avatar_url}
+                                        src={profile.avatar_url}
+                                        alt="Profile"
+                                        className={styles.avatarImg}
+                                    />
                                 ) : (
                                     user.email[0].toUpperCase()
                                 )}

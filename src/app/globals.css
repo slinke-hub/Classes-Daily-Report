@@ -4,14 +4,18 @@
   /* Deep & Modern Palette */
   --bg-deep: #08080c;
   --bg-card: rgba(18, 18, 26, 0.7);
+  --bg-secondary: #0f172a;
   --bg-tertiary: #1a1a24;
 
   --text-main: #f8fafc;
+  --text-primary: #f8fafc;
   --text-dim: #94a3b8;
+  --text-secondary: #94a3b8;
   --text-muted: #64748b;
 
   /* Neon Accents */
   --primary: #00f2fe;
+  --accent-color: #00f2fe;
   --primary-glow: rgba(0, 242, 254, 0.4);
   --secondary: #7c3aed;
   --secondary-glow: rgba(124, 58, 237, 0.4);
@@ -145,4 +149,23 @@ h4 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* Custom Select Readability */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1a1a24;
+  color: #f8fafc;
+  padding: 10px;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text-main);
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-tertiary) inset;
+  transition: background-color 5000s ease-in-out 0s;
 }

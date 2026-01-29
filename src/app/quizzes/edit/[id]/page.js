@@ -5,6 +5,7 @@ import { supabase } from '../../../../utils/supabase';
 import { useAuth } from '../../../../context/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Plus, Trash2, CheckCircle, Circle, Type, HelpCircle } from 'lucide-react';
+import CustomDialog from '../../../../components/CustomDialog';
 import styles from './EditQuiz.module.css';
 
 export default function EditQuizPage() {
@@ -15,6 +16,14 @@ export default function EditQuizPage() {
     const [quiz, setQuiz] = useState(null);
     const [questions, setQuestions] = useState([]);
     const [saving, setSaving] = useState(false);
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
+    });
 
     useEffect(() => {
         if (quizId) fetchQuizData();
@@ -70,10 +79,26 @@ export default function EditQuizPage() {
             const toInsert = questions.map(({ id, ...rest }) => ({ ...rest, quiz_id: quizId }));
             await supabase.from('questions').insert(toInsert);
 
-            alert('Quiz saved successfully!');
-            router.push('/quizzes');
+            setDialog({
+                isOpen: true,
+                title: 'Success!',
+                message: 'Quiz saved successfully!',
+                type: 'alert',
+                variant: 'success',
+                onConfirm: () => {
+                    setDialog(prev => ({ ...prev, isOpen: false }));
+                    router.push('/quizzes');
+                }
+            });
         } catch (err) {
-            alert('Error saving quiz: ' + err.message);
+            setDialog({
+                isOpen: true,
+                title: 'Save Error',
+                message: err.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } finally {
             setSaving(false);
         }
@@ -189,6 +214,11 @@ export default function EditQuizPage() {
             <button onClick={addQuestion} className={styles.addQBtn}>
                 <Plus size={20} /> Add Question
             </button>
+
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

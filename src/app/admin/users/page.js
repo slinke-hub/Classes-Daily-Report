@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from './Users.module.css';
+import CustomDialog from '../../../components/CustomDialog';
 
 export default function AdminUsersPage() {
     const { user, role, loading } = useAuth();
@@ -22,6 +23,14 @@ export default function AdminUsersPage() {
         phone_number: '',
         gender: '',
         country: ''
+    });
+    const [dialog, setDialog] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'alert',
+        variant: 'info',
+        onConfirm: () => { }
     });
 
     useEffect(() => {
@@ -42,7 +51,14 @@ export default function AdminUsersPage() {
             .order('email');
 
         if (error) {
-            alert('Error fetching users: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Fetch Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } else {
             setUsers(data);
         }
@@ -56,7 +72,14 @@ export default function AdminUsersPage() {
             .eq('id', userId);
 
         if (error) {
-            alert('Error updating role: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Update Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } else {
             fetchUsers();
             // Update the editingUser object so the UI reflects the change (e.g. showing teacher select)
@@ -71,7 +94,14 @@ export default function AdminUsersPage() {
             .eq('id', studentId);
 
         if (error) {
-            alert('Error assigning teacher: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Assignment Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } else {
             fetchUsers();
             setEditingUser(prev => ({ ...prev, teacher_id: teacherId }));
@@ -79,18 +109,33 @@ export default function AdminUsersPage() {
     };
 
     const handleDeleteUser = async (userId) => {
-        if (!confirm('Are you sure you want to delete this user? This will only remove their profile. To fully delete them, use the Supabase Auth dashboard.')) return;
+        setDialog({
+            isOpen: true,
+            title: 'Delete User?',
+            message: 'Are you sure you want to delete this user? This will only remove their profile. To fully delete them, use the Supabase Auth dashboard.',
+            type: 'confirm',
+            variant: 'warning',
+            onConfirm: async () => {
+                const { error } = await supabase
+                    .from('profiles')
+                    .delete()
+                    .eq('id', userId);
 
-        const { error } = await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userId);
-
-        if (error) {
-            alert('Error deleting user: ' + error.message);
-        } else {
-            fetchUsers();
-        }
+                if (error) {
+                    setDialog({
+                        isOpen: true,
+                        title: 'Error',
+                        message: error.message,
+                        type: 'alert',
+                        variant: 'warning',
+                        onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+                    });
+                } else {
+                    setDialog(prev => ({ ...prev, isOpen: false }));
+                    fetchUsers();
+                }
+            }
+        });
     };
 
     const handleCreateUser = async (e) => {
@@ -116,9 +161,23 @@ export default function AdminUsersPage() {
         });
 
         if (error) {
-            alert('Error creating user: ' + error.message);
+            setDialog({
+                isOpen: true,
+                title: 'Creation Error',
+                message: error.message,
+                type: 'alert',
+                variant: 'warning',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
         } else {
-            alert('User created successfully! They will need to confirm their email.');
+            setDialog({
+                isOpen: true,
+                title: 'Success!',
+                message: 'User created successfully! They will need to confirm their email.',
+                type: 'alert',
+                variant: 'success',
+                onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))
+            });
             setShowCreateModal(false);
             fetchUsers();
             setNewUser({
@@ -268,6 +327,11 @@ export default function AdminUsersPage() {
                     </div>
                 </div>
             )}
+
+            <CustomDialog
+                {...dialog}
+                onClose={() => setDialog(prev => ({ ...prev, isOpen: false }))}
+            />
         </main>
     );
 }
