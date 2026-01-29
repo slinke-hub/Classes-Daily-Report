@@ -33,20 +33,37 @@ export default function WhiteboardPage() {
     const [isSharing, setIsSharing] = useState(false);
     const [remoteStream, setRemoteStream] = useState(null);
 
-    useEffect(() => {
+    const setupCanvas = () => {
         const canvas = canvasRef.current;
-        // Make canvas responsive
-        canvas.width = window.innerWidth * 2;
-        canvas.height = window.innerHeight * 2;
-        canvas.style.width = `${window.innerWidth}px`;
-        canvas.style.height = `${window.innerHeight}px`;
+        if (!canvas) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.parentElement.getBoundingClientRect();
+
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        canvas.style.width = `${rect.width}px`;
+        canvas.style.height = `${rect.height}px`;
 
         const context = canvas.getContext('2d');
-        context.scale(2, 2);
+        context.scale(dpr, dpr);
         context.lineCap = 'round';
         context.strokeStyle = color;
         context.lineWidth = lineWidth;
         contextRef.current = context;
+
+        // Re-render paths after resize
+        renderAll();
+    };
+
+    useEffect(() => {
+        setupCanvas();
+
+        const handleResize = () => {
+            setupCanvas();
+        };
+
+        window.addEventListener('resize', handleResize);
 
         // Subscribe to Realtime Channel
         const channel = supabase.channel(`whiteboard:${scheduleId}`, {
@@ -94,27 +111,10 @@ export default function WhiteboardPage() {
         channelRef.current = channel;
 
         return () => {
+            window.removeEventListener('resize', handleResize);
             supabase.removeChannel(channel);
         };
     }, [scheduleId]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        // Make it full screen
-        canvas.width = window.innerWidth * 2;
-        canvas.height = window.innerHeight * 2;
-        canvas.style.width = `${window.innerWidth}px`;
-        canvas.style.height = `${window.innerHeight}px`;
-
-        const context = canvas.getContext('2d');
-        context.scale(2, 2);
-        context.lineCap = 'round';
-        context.strokeStyle = color;
-        context.lineWidth = lineWidth;
-        contextRef.current = context;
-    }, []);
 
     useEffect(() => {
         if (contextRef.current) {
