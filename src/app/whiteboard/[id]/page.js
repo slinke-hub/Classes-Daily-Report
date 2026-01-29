@@ -21,6 +21,12 @@ export default function WhiteboardPage() {
     const [elements, setElements] = useState([]);
     const [undoStack, setUndoStack] = useState([]);
     const [redoStack, setRedoStack] = useState([]);
+    const [draggingId, setDraggingId] = useState(null);
+    const [currentPath, setCurrentPath] = useState(null);
+    const [activeSection, setActiveSection] = useState('draw'); // 'draw', 'objects', 'voice', 'settings'
+    const [fontSize, setFontSize] = useState(16);
+    const channelRef = useRef(null);
+    const videoRef = useRef(null);
     const [isSharing, setIsSharing] = useState(false);
     const [remoteStream, setRemoteStream] = useState(null);
     const [isMicOn, setIsMicOn] = useState(false);
