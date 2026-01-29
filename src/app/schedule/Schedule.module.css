@@ -4,6 +4,22 @@
     margin: 0 auto;
 }
 
+.slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .header {
     display: flex;
     justify-content: space-between;
