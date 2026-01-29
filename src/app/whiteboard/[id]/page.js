@@ -129,6 +129,24 @@ export default function WhiteboardPage() {
         }
     }, [remoteStream]);
 
+    const renderAll = (elementsList = elements) => {
+        clearCanvasLocally();
+        // Redraw only Path elements on canvas
+        elementsList.forEach(el => {
+            if (el.type === 'path' && el.points && el.points.length > 0) {
+                const ctx = contextRef.current;
+                if (!ctx) return;
+                ctx.beginPath();
+                ctx.strokeStyle = el.color;
+                ctx.lineWidth = el.width;
+                ctx.moveTo(el.points[0].x, el.points[0].y);
+                el.points.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.stroke();
+                ctx.closePath();
+            }
+        });
+    };
+
     const getCoordinates = (e) => {
         const canvas = canvasRef.current;
         const rect = canvas.getBoundingClientRect();
