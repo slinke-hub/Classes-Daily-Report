@@ -40,21 +40,23 @@ export default function ForgotPasswordPage() {
         } catch (err) {
             console.error('Reset error:', err);
 
+            const msg = (err.message || '').toLowerCase();
+            const isFetchError = msg.includes('fetch');
+
             // Handle standard browser Fetch errors with better UX
-            if (err.message === 'Failed to fetch') {
-                setError('Network Error: Could not connect to the authentication server. Please check your internet connection and ensure no ad-blockers are blocking Supabase.');
+            if (isFetchError) {
+                setError('Network Error: Could not reach the authentication server. Please check your internet, disable ad-blockers, and ensure your Supabase project is active.');
             } else {
                 setError(err.message || 'Failed to send reset email');
             }
 
             setStatus('error');
 
-            const msg = (err.message || '').toLowerCase();
-            if (msg.includes('fetch')) {
+            if (isFetchError) {
                 setDialog({
                     isOpen: true,
-                    title: 'Network Connection Issue',
-                    message: 'The app failed to reach Supabase. This typically happens for one of three reasons:\n\n1. Internet is disconnected\n2. An ad-blocker (like uBlock Origin) is blocking "supabase.co"\n3. The development server needs a restart to pick up your .env.local file.',
+                    title: 'Connection Blocked',
+                    message: 'The request to Supabase failed. This is usually caused by:\n\n1. AN AD-BLOCKER (like uBlock Origin) blocking "supabase.co"\n2. A disconnected internet connection\n3. The Supabase project being "Paused" in the dashboard\n4. Missing redirect URL configuration in Supabase Dashboard (Auth -> Redirect URLs).',
                     type: 'alert',
                     variant: 'warning',
                     onConfirm: () => setDialog(prev => ({ ...prev, isOpen: false }))

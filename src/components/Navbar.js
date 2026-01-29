@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks } from 'lucide-react';
 import styles from './Navbar.module.css';
@@ -10,6 +10,7 @@ import styles from './Navbar.module.css';
 export default function Navbar() {
     const { user, profile, role, logout } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const dropdownRef = useRef(null);
 
@@ -24,6 +25,8 @@ export default function Navbar() {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const isActive = (path) => pathname === path;
+
     if (!user) return null;
 
     return (
@@ -34,33 +37,33 @@ export default function Navbar() {
                         My<span>Class</span>
                     </Link>
                     <div className={styles.menu}>
-                        <Link href="/" className={styles.navLink}>
+                        <Link href="/" className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}>
                             <LayoutDashboard size={18} />
                             <span>Dashboard</span>
                         </Link>
                         {role === 'admin' && (
-                            <Link href="/admin/users" className={styles.navLink}>
+                            <Link href="/admin/users" className={`${styles.navLink} ${isActive('/admin/users') ? styles.active : ''}`}>
                                 <User size={18} />
                                 <span>Users</span>
                             </Link>
                         )}
                         {(role === 'admin' || role === 'teacher') && (
                             <>
-                                <Link href="/schedule" className={styles.navLink}>
+                                <Link href="/schedule" className={`${styles.navLink} ${isActive('/schedule') ? styles.active : ''}`}>
                                     <Calendar size={18} />
                                     <span>Schedule</span>
                                 </Link>
-                                <Link href="/create" className={`${styles.navLink} ${styles.fancyReportBtn}`}>
+                                <Link href="/create" className={`${styles.navLink} ${styles.fancyReportBtn} ${isActive('/create') ? styles.active : ''}`}>
                                     <PlusCircle size={18} />
                                     <span>New Report</span>
                                 </Link>
                             </>
                         )}
-                        <Link href="/chat" className={styles.navLink}>
+                        <Link href="/chat" className={`${styles.navLink} ${isActive('/chat') ? styles.active : ''}`}>
                             <MessageSquare size={18} />
                             <span>Chat</span>
                         </Link>
-                        <Link href="/quizzes" className={styles.navLink}>
+                        <Link href="/quizzes" className={`${styles.navLink} ${isActive('/quizzes') ? styles.active : ''}`}>
                             <ListChecks size={18} />
                             <span>Quizzes</span>
                         </Link>
@@ -94,11 +97,11 @@ export default function Navbar() {
                                     <span className={`${styles.roleBadge} ${styles[role]}`}>{role}</span>
                                 </div>
                                 <div className={styles.divider} />
-                                <Link href="/profile" className={styles.dropLink} onClick={() => setIsProfileOpen(false)}>
+                                <Link href="/profile" className={`${styles.dropLink} ${isActive('/profile') ? styles.active : ''}`} onClick={() => setIsProfileOpen(false)}>
                                     <User size={16} />
                                     <span>View Profile</span>
                                 </Link>
-                                <Link href="/settings" className={styles.dropLink} onClick={() => setIsProfileOpen(false)}>
+                                <Link href="/settings" className={`${styles.dropLink} ${isActive('/settings') ? styles.active : ''}`} onClick={() => setIsProfileOpen(false)}>
                                     <Settings size={16} />
                                     <span>Settings</span>
                                 </Link>

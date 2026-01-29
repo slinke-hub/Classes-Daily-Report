@@ -5,34 +5,43 @@ import { supabase } from '../../utils/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { MessageSquare, Users, ArrowLeft, Send, Search } from 'lucide-react';
 import styles from './Chat.module.css';
 
 export default function ChatPage() {
-    const { user, role, loading } = useAuth();
+    const { user, role, loading: authLoading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const chatWithId = searchParams.get('with');
 
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [partners, setPartners] = useState([]);
     const [otherUser, setOtherUser] = useState(null);
-    const [fetching, setFetching] = useState(true);
+    const [fetching, setFetching] = useState(false);
+    const [loadingContacts, setLoadingContacts] = useState(true);
     const messagesEndRef = useRef(null);
 
     useEffect(() => {
-        if (!loading) {
+        if (!authLoading) {
             if (!user) {
                 router.push('/login');
-            } else if (!chatWithId) {
-                // If no user selected, maybe show list of contacts?
-                // For now, let's just go back
-                router.push('/');
             } else {
-                fetchChatInfo();
-                subscribeToMessages();
+                fetchChatPartners();
             }
         }
-    }, [user, role, loading, chatWithId]);
+    }, [user, role, authLoading]);
+
+    useEffect(() => {
+        if (chatWithId && user) {
+            fetchMessages();
+            fetchOtherUserInfo();
+            subscribeToMessages();
+        } else {
+            setMessages([]);
+            setOtherUser(null);
+        }
+    }, [chatWithId, user]);
 
     useEffect(() => {
         scrollToBottom();
@@ -42,31 +51,80 @@ export default function ChatPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    const fetchChatInfo = async () => {
-        setFetching(true);
-        // Fetch the other user's info
-        const { data: userData } = await supabase
+    const fetchChatPartners = async () => {
+        setLoadingContacts(true);
+        try {
+            const admins = ['monti.training@hotmail.com'];
+            let partnerIds = [];
+
+            if (role === 'student') {
+                // Fetch assigned teacher
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('teacher_id')
+                    .eq('id', user.id)
+                    .single();
+                if (profile?.teacher_id) partnerIds.push(profile.teacher_id);
+            } else if (role === 'teacher') {
+                // Fetch assigned students
+                const { data: students } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('teacher_id', user.id);
+                if (students) partnerIds.push(...students.map(s => s.id));
+
+                // Also add admins to teacher's list
+                const { data: adminProfiles } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .in('email', admins);
+                if (adminProfiles) partnerIds.push(...adminProfiles.map(a => a.id));
+            } else if (role === 'admin') {
+                // Fetch all teachers
+                const { data: teachers } = await supabase
+                    .from('profiles')
+                    .select('id')
+                    .eq('role', 'teacher');
+                if (teachers) partnerIds.push(...teachers.map(t => t.id));
+            }
+
+            if (partnerIds.length > 0) {
+                const { data: partnerProfiles } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .in('id', partnerIds);
+                setPartners(partnerProfiles || []);
+            }
+        } catch (err) {
+            console.error('Error fetching partners:', err);
+        } finally {
+            setLoadingContacts(false);
+        }
+    };
+
+    const fetchOtherUserInfo = async () => {
+        const { data } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', chatWithId)
             .single();
+        setOtherUser(data);
+    };
 
-        setOtherUser(userData);
-
-        // Fetch existing messages
-        const { data: messagesData } = await supabase
+    const fetchMessages = async () => {
+        setFetching(true);
+        const { data } = await supabase
             .from('messages')
             .select('*')
             .or(`and(sender_id.eq.${user.id},receiver_id.eq.${chatWithId}),and(sender_id.eq.${chatWithId},receiver_id.eq.${user.id})`)
             .order('created_at', { ascending: true });
-
-        setMessages(messagesData || []);
+        setMessages(data || []);
         setFetching(false);
     };
 
     const subscribeToMessages = () => {
         const channel = supabase
-            .channel('chat_messages')
+            .channel(`chat:${user.id}:${chatWithId}`)
             .on('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -84,7 +142,7 @@ export default function ChatPage() {
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || !chatWithId) return;
 
         const messageData = {
             sender_id: user.id,
@@ -92,63 +150,114 @@ export default function ChatPage() {
             content: newMessage.trim()
         };
 
-        // Optimistic update
         const tempId = Date.now();
         setMessages(prev => [...prev, { ...messageData, id: tempId, created_at: new Date().toISOString() }]);
         setNewMessage('');
 
-        const { error } = await supabase
-            .from('messages')
-            .insert([messageData]);
-
-        if (error) {
-            alert('Error sending message: ' + error.message);
-        }
+        const { error } = await supabase.from('messages').insert([messageData]);
+        if (error) alert('Error sending message: ' + error.message);
     };
 
-    if (loading || fetching) return <div className={styles.loading}>Opening Chat...</div>;
+    if (authLoading) return <div className={styles.loading}>Verifying Session...</div>;
+
+    const selectPartner = (id) => {
+        router.push(`/chat?with=${id}`);
+    };
 
     return (
         <main className={styles.container}>
-            <header className={styles.header}>
-                <Link href="/" className={styles.backBtn}>&larr; Exit Chat</Link>
-                <div className={styles.userInfo}>
-                    <span className={styles.userName}>{otherUser?.email}</span>
-                    <span className={styles.userRole}>{otherUser?.role}</span>
+            {/* Sidebar: Only visible on desktop or if no chat is selected on mobile */}
+            <aside className={`${styles.sidebar} ${chatWithId ? styles.hideMobile : ''}`}>
+                <div className={styles.sidebarHeader}>
+                    <h2><MessageSquare size={24} /> Conversations</h2>
                 </div>
-            </header>
-
-            <div className={styles.chatWindow}>
-                {messages.length === 0 ? (
-                    <div className={styles.empty}>No messages yet. Say hello!</div>
-                ) : (
-                    messages.map((msg) => (
-                        <div
-                            key={msg.id}
-                            className={`${styles.message} ${msg.sender_id === user.id ? styles.sent : styles.received}`}
-                        >
-                            <div className={styles.messageContent}>
-                                {msg.content}
-                                <span className={styles.time}>
-                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
+                <div className={styles.contactList}>
+                    {loadingContacts ? (
+                        <div className={styles.empty}>Loading contacts...</div>
+                    ) : partners.length === 0 ? (
+                        <div className={styles.empty}>No contacts found.</div>
+                    ) : (
+                        partners.map(p => (
+                            <div
+                                key={p.id}
+                                className={`${styles.contactItem} ${chatWithId === p.id ? styles.activeContact : ''}`}
+                                onClick={() => selectPartner(p.id)}
+                            >
+                                <div className={styles.contactAvatar}>
+                                    {p.avatar_url ? <img src={p.avatar_url} alt="" /> : p.full_name?.[0] || p.email[0].toUpperCase()}
+                                </div>
+                                <div className={styles.contactInfo}>
+                                    <span className={styles.contactName}>{p.full_name || p.email}</span>
+                                    <span className={styles.contactRole}>{p.role}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))
-                )}
-                <div ref={messagesEndRef} />
-            </div>
+                        ))
+                    )}
+                </div>
+            </aside>
 
-            <form onSubmit={handleSendMessage} className={styles.inputArea}>
-                <input
-                    type="text"
-                    placeholder="Type a message..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    className={styles.input}
-                />
-                <button type="submit" className={styles.sendBtn}>Send</button>
-            </form>
+            {/* Main Chat Area */}
+            <section className={`${styles.mainChat} ${!chatWithId ? styles.hideMobile : ''}`}>
+                {chatWithId ? (
+                    <>
+                        <header className={styles.header}>
+                            <button onClick={() => router.push('/chat')} className={styles.backBtn}>
+                                <ArrowLeft size={20} />
+                            </button>
+                            <div className={styles.userInfo}>
+                                <span className={styles.userName}>{otherUser?.full_name || otherUser?.email}</span>
+                                <span className={styles.userRole}>{otherUser?.role}</span>
+                            </div>
+                        </header>
+
+                        <div className={styles.chatWindow}>
+                            {fetching ? (
+                                <div className={styles.empty}>Loading messages...</div>
+                            ) : messages.length === 0 ? (
+                                <div className={styles.empty}>No messages yet. Say hello!</div>
+                            ) : (
+                                messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`${styles.message} ${msg.sender_id === user.id ? styles.sent : styles.received}`}
+                                    >
+                                        <div className={styles.messageContent}>
+                                            {msg.content}
+                                            <span className={styles.time}>
+                                                {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        <form onSubmit={handleSendMessage} className={styles.inputArea}>
+                            <input
+                                type="text"
+                                placeholder="Type a message..."
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                className={styles.input}
+                            />
+                            <button type="submit" className={styles.sendBtn}>
+                                <Send size={20} />
+                                <span className={styles.hideMobile}>Send</span>
+                            </button>
+                        </form>
+                    </>
+                ) : (
+                    <div className={styles.empty}>
+                        <div className={styles.emptyIcon}>
+                            <MessageSquare size={32} />
+                        </div>
+                        <h3>Select a conversation</h3>
+                        <p>Choose a contact from the sidebar to start chatting.</p>
+                        <Link href="/" className="btn-secondary" style={{ marginTop: '20px' }}>Back to Dashboard</Link>
+                    </div>
+                )}
+            </section>
         </main>
     );
 }
