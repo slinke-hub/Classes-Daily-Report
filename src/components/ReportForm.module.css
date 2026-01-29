@@ -75,55 +75,21 @@
 }
 
 .submitBtn {
+    width: 100%;
     margin-top: 20px;
-    padding: 16px;
-    background: var(--grad-main);
-    color: #000;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 1.1em;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
-    position: relative;
-    overflow: hidden;
 }
 
-.submitBtn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+.amountInput {
+    background: rgba(16, 185, 129, 0.05) !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    color: var(--success) !important;
+    font-weight: 700;
+    font-size: 1.1rem;
 }
 
-.submitBtn::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: rgba(255, 255, 255, 0.1);
-    transform: rotate(45deg);
-    transition: all 0.5s;
-    pointer-events: none;
-}
-
-.submitBtn:hover::after {
-    left: 120%;
-}
-
-.submitBtn:active {
-    transform: translateY(1px) scale(0.98);
-}
-
-.submitBtn:disabled {
-    opacity: 0.5;
-    background: var(--text-muted);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+.amountInput:focus {
+    border-color: var(--success) !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
 }
 
 .fileInput {

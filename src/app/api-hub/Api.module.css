@@ -190,7 +190,7 @@
     color: var(--text-muted);
 }
 
-pre {
+.codeBlock {
     padding: 30px;
     color: #10b981;
     font-family: 'Courier New', Courier, monospace;

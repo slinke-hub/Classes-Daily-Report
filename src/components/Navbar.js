@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle } from 'lucide-react';
+import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -50,7 +50,7 @@ export default function Navbar() {
                                     <Calendar size={18} />
                                     <span>Schedule</span>
                                 </Link>
-                                <Link href="/create" className={styles.navLink}>
+                                <Link href="/create" className={`${styles.navLink} ${styles.fancyReportBtn}`}>
                                     <PlusCircle size={18} />
                                     <span>New Report</span>
                                 </Link>
@@ -59,6 +59,14 @@ export default function Navbar() {
                         <Link href="/chat" className={styles.navLink}>
                             <MessageSquare size={18} />
                             <span>Chat</span>
+                        </Link>
+                        <Link href="/homework" className={styles.navLink}>
+                            <BookOpen size={18} />
+                            <span>Homework</span>
+                        </Link>
+                        <Link href="/quizzes" className={styles.navLink}>
+                            <ListChecks size={18} />
+                            <span>Quizzes</span>
                         </Link>
                     </div>
                 </div>

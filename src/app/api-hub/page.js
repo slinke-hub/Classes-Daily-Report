@@ -174,7 +174,7 @@ export default function ApiPage() {
                     <Code size={16} />
                     <span>Quick Preview (JSON)</span>
                 </div>
-                <pre>
+                <pre className={styles.codeBlock}>
                     {`{
   "api_version": "v1.0",
   "status": "connected",

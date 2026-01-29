@@ -111,6 +111,109 @@
 
 .row {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
+}
+
+.typeSwitcher {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 5px;
+}
+
+.typeBtn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: var(--glass-border);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-dim);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.typeBtn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.classActive {
+    background: var(--grad-main) !important;
+    color: #000 !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 20px var(--primary-glow);
+}
+
+.eventActive {
+    background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 20px var(--secondary-glow);
+}
+
+.reminderActive {
+    background: linear-gradient(135deg, #ff007a 0%, #e11d48 100%) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 0 20px rgba(255, 0, 122, 0.4);
+}
+
+.colorPalette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.colorOption {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.colorActive {
+    border-color: #fff;
+    transform: scale(1.15);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.group textarea {
+    background: var(--bg-tertiary);
+    border: var(--glass-border);
+    padding: 12px;
+    border-radius: 8px;
+    color: var(--text-main);
+    resize: none;
+    font-family: inherit;
+    min-height: 80px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.deleteBtn {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    padding: 12px !important;
+    border-radius: 12px !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.2) !important;
+    transform: scale(1.05);
 }

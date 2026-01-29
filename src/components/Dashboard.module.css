@@ -44,10 +44,6 @@
 
 .chatBtn {
     padding: 8px 16px;
-    background: var(--grad-main);
-    color: #000;
-    border-radius: var(--radius-md);
-    font-weight: 700;
     font-size: 0.8rem;
 }
 
@@ -60,10 +56,34 @@
 .miniItem {
     display: flex;
     justify-content: space-between;
-    padding: 8px;
+    align-items: center;
+    padding: 10px;
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+}
+
+.classInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.whiteboardBtn {
+    background: rgba(0, 242, 254, 0.1);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    transition: all 0.2s;
+}
+
+.whiteboardBtn:hover {
+    background: var(--primary);
+    color: #000;
 }
 
 .grid {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import styles from './Login.module.css';
 
@@ -172,6 +173,12 @@ export default function LoginPage() {
                             </button>
                         </div>
                     </div>
+
+                    {isLogin && (
+                        <Link href="/forgot-password" className={styles.forgotLink}>
+                            Forgot password?
+                        </Link>
+                    )}
 
                     {!isLogin && (
                         <div className={styles.robotCheck}>

@@ -145,7 +145,7 @@ export default function AdminUsersPage() {
             <header className={styles.header}>
                 <Link href="/" className={styles.backBtn}>&larr; Back to Dashboard</Link>
                 <h1>User Management</h1>
-                <button onClick={() => setShowCreateModal(true)} className={styles.addBtn}>+ Add New User</button>
+                <button onClick={() => setShowCreateModal(true)} className={`${styles.addBtn} btn-primary`}>+ Add New User</button>
             </header>
 
             <div className={styles.tableContainer}>
@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
                                     <div className={styles.actions}>
                                         <button
                                             onClick={() => setEditingUser(u)}
-                                            className={styles.editBtn}
+                                            className={`${styles.editBtn} btn-secondary`}
                                         >
                                             Edit
                                         </button>
@@ -230,7 +230,7 @@ export default function AdminUsersPage() {
                             </div>
                         )}
 
-                        <button onClick={() => setEditingUser(null)} className={styles.cancelBtn}>Close</button>
+                        <button onClick={() => setEditingUser(null)} className={`${styles.cancelBtn} btn-secondary`} style={{ marginTop: '20px', width: '100%' }}>Close</button>
                     </div>
                 </div>
             )}
@@ -261,8 +261,8 @@ export default function AdminUsersPage() {
                                 </select>
                             </div>
                             <div className={styles.modalActions}>
-                                <button type="submit" className={styles.saveBtn}>Create User</button>
-                                <button type="button" onClick={() => setShowCreateModal(false)} className={styles.cancelBtn}>Cancel</button>
+                                <button type="submit" className={`${styles.saveBtn} btn-primary`}>Create User</button>
+                                <button type="button" onClick={() => setShowCreateModal(false)} className={`${styles.cancelBtn} btn-secondary`}>Cancel</button>
                             </div>
                         </form>
                     </div>

@@ -54,9 +54,11 @@ export default function Dashboard() {
                 .from('gpa_reports')
                 .select('*');
 
-            if (role === 'admin') {
+            if (role === 'admin' || role === 'teacher') {
+                // Admins and Teachers see all reports (or you can filter teacher's students later)
                 query = query.order('date', { ascending: false });
             } else {
+                // Students only see their own reports
                 query = query
                     .eq('student_email', user.email)
                     .order('date', { ascending: false });
@@ -69,6 +71,9 @@ export default function Dashboard() {
             setReports(data || []);
         } catch (error) {
             console.error('Error fetching reports:', error);
+            if (error.message) console.error('Error message:', error.message);
+            if (error.details) console.error('Error details:', error.details);
+            if (error.hint) console.error('Error hint:', error.hint);
         } finally {
             setLoading(false);
         }
@@ -85,7 +90,7 @@ export default function Dashboard() {
                         {teacher ? (
                             <div className={styles.teacherInfo}>
                                 <span>{teacher.email}</span>
-                                <Link href={`/chat?with=${teacher.id}`} className={styles.chatBtn}>Chat Now</Link>
+                                <Link href={`/chat?with=${teacher.id}`} className={`${styles.chatBtn} btn-primary`}>Chat Now</Link>
                             </div>
                         ) : <p>No teacher assigned.</p>}
                     </div>
@@ -95,8 +100,13 @@ export default function Dashboard() {
                             {schedules.length === 0 ? <p>No classes scheduled.</p> : (
                                 schedules.map(s => (
                                     <div key={s.id} className={styles.miniItem}>
-                                        <span>{new Date(s.start_time).toLocaleDateString()}</span>
-                                        <span>{s.topic}</span>
+                                        <div className={styles.classInfo}>
+                                            <span>{new Date(s.start_time).toLocaleDateString()}</span>
+                                            <span>{s.topic}</span>
+                                        </div>
+                                        <Link href={`/whiteboard/${s.id}`} className={styles.whiteboardBtn}>
+                                            Board
+                                        </Link>
                                     </div>
                                 ))
                             )}

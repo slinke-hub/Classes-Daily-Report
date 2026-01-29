@@ -14,14 +14,31 @@
 .backBtn {
     background: rgba(255, 255, 255, 0.05);
     border: var(--glass-border);
-    color: var(--text-dim);
-    padding: 8px 16px;
-    border-radius: 8px;
+    color: var(--text-main);
+    padding: 10px 20px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.backBtn svg {
+    transition: transform 0.3s ease;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-5px);
+    border-color: var(--success);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.backBtn:hover svg {
+    transform: translateX(-3px) scale(1.1);
 }
 
 .titleInfo h1 {

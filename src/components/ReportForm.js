@@ -17,6 +17,7 @@ export default function ReportForm() {
         date: new Date().toISOString().split('T')[0],
         student_email: '',
         paid_status: false,
+        paid_amount: '',
         point_of_focus: '',
         new_words: [],
         homework: '',
@@ -74,7 +75,11 @@ export default function ReportForm() {
 
             const { error } = await supabase
                 .from('gpa_reports')
-                .insert([{ ...formData, image_url: finalImageUrl }]);
+                .insert([{
+                    ...formData,
+                    paid_amount: formData.paid_status ? parseFloat(formData.paid_amount) || 0 : 0,
+                    image_url: finalImageUrl
+                }]);
 
             if (error) throw error;
 
@@ -129,6 +134,20 @@ export default function ReportForm() {
                     </button>
                 </div>
             </div>
+
+            {formData.paid_status && (
+                <div className={`${styles.formGroup} fade-in`}>
+                    <label>Paid Amount ($)</label>
+                    <input
+                        type="number"
+                        placeholder="0.00"
+                        required
+                        value={formData.paid_amount}
+                        onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
+                        className={styles.amountInput}
+                    />
+                </div>
+            )}
 
             <div className={styles.formGroup}>
                 <label>Point of Focus</label>
@@ -205,7 +224,7 @@ export default function ReportForm() {
                 {imageFile && <p className={styles.fileName}>Selected: {imageFile.name}</p>}
             </div>
 
-            <button type="submit" className={styles.submitBtn} disabled={loading}>
+            <button type="submit" className={`${styles.submitBtn} btn-primary`} disabled={loading}>
                 {loading ? 'Saving...' : 'Create Report'}
             </button>
         </form>

@@ -1,0 +1,175 @@
+.container {
+    width: 100vw;
+    height: 100vh;
+    background: #0a0a0c;
+    overflow: hidden;
+    position: relative;
+}
+
+.canvas {
+    display: block;
+    cursor: crosshair;
+}
+
+.topBar {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 10;
+}
+
+.backBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: var(--glass-border);
+    color: var(--text-main);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.backBtn svg {
+    transition: transform 0.3s ease;
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(-5px) scale(1.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+    color: var(--primary);
+}
+
+.backBtn:hover svg {
+    transform: translateX(-2px);
+}
+
+.backBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.05);
+}
+
+.presence {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--success);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toolbar {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 10;
+}
+
+.toolbar button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toolbar button:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.toolbar button.active {
+    background: var(--primary);
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 0 5px;
+}
+
+.colors {
+    display: flex;
+    gap: 8px;
+}
+
+.colors button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid transparent;
+}
+
+.activeColor {
+    border-color: #fff !important;
+    transform: scale(1.2);
+}
+
+.userList {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 10;
+}
+
+.userBubble {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--grad-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #000;
+    font-size: 0.9rem;
+    border: 2px solid #000;
+    overflow: hidden;
+    animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.userBubble img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+@keyframes pop {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}

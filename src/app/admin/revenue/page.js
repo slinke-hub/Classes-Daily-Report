@@ -12,16 +12,40 @@ export default function RevenuePage() {
     const router = useRouter();
     const [transactions, setTransactions] = useState([]);
     const [stats, setStats] = useState({
-        totalRevenue: 1240.00,
-        monthlyGrowth: 15.4,
-        pendingPayments: 450.00
+        totalRevenue: 0,
+        monthlyGrowth: 0,
+        pendingPayments: 0
     });
 
     useEffect(() => {
         if (!loading && (!user || role !== 'admin')) {
             router.push('/');
         }
+        if (user && role === 'admin') {
+            fetchRevenueData();
+        }
     }, [user, role, loading, router]);
+
+    const fetchRevenueData = async () => {
+        // Fetch paid reports
+        const { data: reports, error } = await supabase
+            .from('gpa_reports')
+            .select('*')
+            .order('date', { ascending: false });
+
+        if (reports) {
+            const paid = reports.filter(r => r.paid_status);
+            const total = paid.reduce((acc, curr) => acc + (curr.paid_amount || 0), 0);
+            const pending = reports.filter(r => !r.paid_status).length * 150; // Manual heuristic for now
+
+            setTransactions(reports);
+            setStats({
+                totalRevenue: total,
+                monthlyGrowth: 0, // Placeholder
+                pendingPayments: pending
+            });
+        }
+    };
 
     if (loading || role !== 'admin') return null;
 
@@ -37,7 +61,9 @@ export default function RevenuePage() {
                 </div>
                 <div className={styles.actions}>
                     <button className="btn-secondary"><Download size={18} /> Export CSV</button>
-                    <button className="btn-primary"><Plus size={18} /> New Transaction</button>
+                    <button className="btn-primary" onClick={() => router.push('/create')}>
+                        <Plus size={18} /> New Transaction
+                    </button>
                 </div>
             </header>
 
@@ -69,34 +95,26 @@ export default function RevenuePage() {
                     <thead>
                         <tr>
                             <th>Student</th>
-                            <th>Plan / Course</th>
-                            <th>Amount</th>
                             <th>Date</th>
+                            <th>Amount</th>
+                            <th>Homework</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>John Doe</td>
-                            <td>Advanced Math (Monthly)</td>
-                            <td className={styles.amount}>$150.00</td>
-                            <td>Jan 28, 2026</td>
-                            <td><span className={styles.badge + ' ' + styles.paid}>Paid</span></td>
-                        </tr>
-                        <tr>
-                            <td>Alice Smith</td>
-                            <td>Private Tutoring (10 hrs)</td>
-                            <td className={styles.amount}>$300.00</td>
-                            <td>Jan 27, 2026</td>
-                            <td><span className={styles.badge + ' ' + styles.pending}>Pending</span></td>
-                        </tr>
-                        <tr>
-                            <td>Bob Johnson</td>
-                            <td>Physics Crash Course</td>
-                            <td className={styles.amount}>$120.00</td>
-                            <td>Jan 25, 2026</td>
-                            <td><span className={styles.badge + ' ' + styles.paid}>Paid</span></td>
-                        </tr>
+                        {transactions.map(t => (
+                            <tr key={t.id}>
+                                <td>{t.student_email}</td>
+                                <td>{new Date(t.date).toLocaleDateString()}</td>
+                                <td className={styles.amount}>${t.paid_amount || (t.paid_status ? 0 : '-')}</td>
+                                <td>{t.homework || 'N/A'}</td>
+                                <td>
+                                    <span className={`${styles.badge} ${t.paid_status ? styles.paid : styles.pending}`}>
+                                        {t.paid_status ? 'Paid' : 'Unpaid'}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </div>

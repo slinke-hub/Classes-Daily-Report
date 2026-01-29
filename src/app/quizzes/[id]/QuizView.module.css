@@ -1,0 +1,246 @@
+.container {
+    padding: 40px 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.loading {
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+}
+
+.startCard,
+.resultCard {
+    text-align: center;
+    padding: 60px 40px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.awardIcon {
+    color: var(--primary);
+    filter: drop-shadow(0 0 20px rgba(0, 242, 254, 0.4));
+}
+
+.startCard h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.quizInfo {
+    display: flex;
+    gap: 30px;
+    color: var(--text-dim);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.startBtn {
+    padding: 16px 40px;
+    font-size: 1.1rem;
+}
+
+.backBtn {
+    padding: 10px 20px;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 30px;
+}
+
+.progress {
+    flex: 1;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.progress span {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    text-transform: uppercase;
+}
+
+.progressBar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: var(--grad-main);
+    transition: width 0.3s ease;
+}
+
+.timer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    font-family: monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.timerWarning {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.questionCard {
+    padding: 40px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 30px;
+}
+
+.questionText {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 35px;
+    line-height: 1.3;
+}
+
+.optionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.optionBtn {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    color: var(--text-main);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.optionBtn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+.selected {
+    background: rgba(0, 242, 254, 0.1) !important;
+    border-color: var(--primary) !important;
+    color: var(--primary);
+}
+
+.optionLetter {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.selected .optionLetter {
+    background: var(--primary);
+    color: #000;
+}
+
+.textInput {
+    width: 100%;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    color: var(--text-main);
+    font-size: 1.2rem;
+    outline: none;
+}
+
+.footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.nextBtn {
+    padding: 14px 28px;
+}
+
+.nextBtn:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.finishBtn {
+    background: var(--success) !important;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+    padding: 14px 28px;
+}
+
+.scoreCircle {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 8px solid var(--success);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.scoreNum {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--success);
+}
+
+.scoreText {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 700;
+}
