@@ -45,9 +45,12 @@ export const AuthProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // 1. Check if environment variables are missing
-        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-            console.error('Supabase configuration missing!');
+        // 1. Check if environment variables are missing OR if they are the placeholder
+        const isPlaceholder = process.env.NEXT_PUBLIC_SUPABASE_URL?.includes('placeholder');
+        const isMissing = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+        if (isMissing || isPlaceholder) {
+            console.error('Supabase configuration invalid!');
             setConfigError(true);
             setLoading(false);
             return;
@@ -108,7 +111,7 @@ export const AuthProvider = ({ children }) => {
             } else if (event === 'SIGNED_OUT') {
                 handleUserChange(null);
             } else if (session?.user) {
-                setUser(session.user);
+                if (isMounted) setUser(session.user);
             }
         });
 
@@ -176,12 +179,18 @@ export const AuthProvider = ({ children }) => {
                     textAlign: 'center',
                     padding: '20px'
                 }}>
-                    <h1 style={{ color: '#ef4444' }}>Configuration Error</h1>
-                    <p style={{ maxWidth: '500px', margin: '15px 0', color: 'var(--text-secondary)' }}>
-                        Supabase Environment variables are missing or were not included in the build.
+                    <h1 style={{ color: '#ef4444' }}>⚠️ Configuration Missing</h1>
+                    <p style={{ maxWidth: '500px', margin: '15px 0', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+                        Your Supabase environment variables are missing from the current build.
+                        <strong> If this is a Vercel deployment, you must add them to the Project Settings.</strong>
                     </p>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '10px', fontSize: '0.9rem' }}>
-                        <code>Please ensure <strong>NEXT_PUBLIC_SUPABASE_URL</strong> is set in Vercel.</code>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '15px', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <p style={{ marginBottom: '10px' }}><strong>Required Vercel Environment Variables:</strong></p>
+                        <code style={{ display: 'block', textAlign: 'left', background: '#000', padding: '10px', borderRadius: '5px' }}>
+                            NEXT_PUBLIC_SUPABASE_URL<br />
+                            NEXT_PUBLIC_SUPABASE_ANON_KEY
+                        </code>
+                        <p style={{ marginTop: '15px', fontSize: '0.8rem' }}>After adding them, trigger a new deployment.</p>
                     </div>
                 </div>
             ) : loading && !user ? (
