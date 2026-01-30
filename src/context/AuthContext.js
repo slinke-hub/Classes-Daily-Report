@@ -72,15 +72,29 @@ export const AuthProvider = ({ children }) => {
             }
         };
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            handleUserChange(session?.user ?? null);
-        }).catch(err => {
-            console.error('Session recovery failed:', err);
-            handleUserChange(null);
-        });
+        const recoverSession = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) {
+                    if (error.message.includes('Refresh Token Not Found')) {
+                        console.warn('Auth: Refresh token missing, clearing session.');
+                        handleUserChange(null);
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    handleUserChange(session?.user ?? null);
+                }
+            } catch (err) {
+                console.error('Session recovery failed:', err);
+                handleUserChange(null);
+            }
+        };
+
+        recoverSession();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+            if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
                 handleUserChange(session?.user ?? null);
             } else if (event === 'SIGNED_OUT') {
                 handleUserChange(null);

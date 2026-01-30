@@ -702,7 +702,7 @@ export default function WhiteboardPage() {
                             <div className={styles.propertyRow}>
                                 <label>Colors</label>
                                 <div className={styles.colors}>
-                                    {['#00f2fe', '#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#fef08a', '#ffffff', '#94a3b8', '#64748b', '#ef4444', '#f59e0b', '#0a0a0c'].map(c => (
+                                    {['#00f2fe', '#8b5cf6', '#ec4899', '#10b981', '#fef08a', '#ffffff', '#94a3b8', '#64748b', '#ef4444', '#f59e0b', '#0a0a0c'].map(c => (
                                         <button
                                             key={c}
                                             style={{ background: c, width: '22px', height: '22px', borderRadius: '50%', border: color === c ? '2px solid #fff' : 'none', cursor: 'pointer' }}
