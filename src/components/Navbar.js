@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X, FileText, GraduationCap } from 'lucide-react';
+import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X, FileText, GraduationCap, Activity, ClipboardCheck } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -54,6 +54,14 @@ export default function Navbar() {
                                 <Link href="/admin/students" className={`${styles.navLink} ${isActive('/admin/students') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
                                     <GraduationCap size={18} />
                                     <span>Students</span>
+                                </Link>
+                                <Link href="/admin/monitor" className={`${styles.navLink} ${isActive('/admin/monitor') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                                    <Activity size={18} />
+                                    <span>Monitor</span>
+                                </Link>
+                                <Link href="/admin/attendance" className={`${styles.navLink} ${isActive('/admin/attendance') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                                    <ClipboardCheck size={18} />
+                                    <span>Attendance</span>
                                 </Link>
                             </>
                         )}

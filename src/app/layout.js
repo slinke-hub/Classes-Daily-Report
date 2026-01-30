@@ -8,6 +8,7 @@ export const metadata = {
 
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import PresenceHandler from '../components/PresenceHandler';
 
 export default function RootLayout({ children }) {
     return (
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
             </head>
             <body suppressHydrationWarning={true}>
                 <AuthWrapper>
+                    <PresenceHandler />
                     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', width: '100%' }}>
                         <Navbar />
                         <main style={{
