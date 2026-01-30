@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Send, FileText, CheckCircle, Clock, Link as LinkIcon, Star, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Send, FileText, CheckCircle, Clock, Link as LinkIcon, Star, MessageCircle, PlusCircle } from 'lucide-react';
 import styles from '../Homework.module.css';
 
 export default function HomeworkDetail() {
@@ -28,10 +28,10 @@ export default function HomeworkDetail() {
     const fetchDetails = async () => {
         setLoading(true);
         try {
-            // Fetch homework
+            // Fetch homework with teacher and student info
             const { data: hw, error: hwErr } = await supabase
                 .from('homeworks')
-                .select('*, profiles:teacher_id(full_name, email)')
+                .select('*, teacher:teacher_id(full_name, email), student:student_id(full_name, email)')
                 .eq('id', id)
                 .single();
             if (hwErr) throw hwErr;
@@ -129,6 +129,15 @@ export default function HomeworkDetail() {
                     <ArrowLeft size={20} /> Back to Hub
                 </button>
                 <h1>Assignment Details</h1>
+                {(role === 'teacher' || role === 'admin') && (
+                    <button
+                        onClick={() => router.push(`/create?student=${homework.student?.email || ''}&homework_id=${homework.id}`)}
+                        className="btn-primary"
+                        style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <PlusCircle size={18} /> Create Class Report
+                    </button>
+                )}
             </header>
 
             <div className={styles.detailGrid}>
@@ -148,10 +157,10 @@ export default function HomeworkDetail() {
                     </div>
                     <div className={styles.teacherBar}>
                         <div className={styles.tAvatar}>
-                            {homework.profiles?.full_name[0]}
+                            {homework.teacher?.full_name?.[0] || 'T'}
                         </div>
                         <div>
-                            <p className={styles.tName}>{homework.profiles?.full_name}</p>
+                            <p className={styles.tName}>{homework.teacher?.full_name}</p>
                             <p className={styles.tRole}>Teacher</p>
                         </div>
                     </div>

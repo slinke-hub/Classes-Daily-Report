@@ -38,8 +38,21 @@ export default function ReportForm() {
     const [availableHomework, setAvailableHomework] = useState([]);
 
     useEffect(() => {
-        if (role === 'teacher') {
+        if (role === 'teacher' || role === 'admin') {
             fetchMyStudents();
+        }
+
+        // Check for query parameters to pre-fill
+        const params = new URLSearchParams(window.location.search);
+        const studentEmail = params.get('student');
+        const hwId = params.get('homework_id');
+
+        if (studentEmail || hwId) {
+            setFormData(prev => ({
+                ...prev,
+                student_email: studentEmail || prev.student_email,
+                homework_id: hwId || prev.homework_id
+            }));
         }
     }, [role]);
 
@@ -54,11 +67,25 @@ export default function ReportForm() {
         }
     }, [formData.student_email, students]);
 
+    // Handle initial homework title sync if ID was pre-filled
+    useEffect(() => {
+        if (formData.homework_id && availableHomework.length > 0 && !formData.homework) {
+            const hw = availableHomework.find(h => h.id === formData.homework_id);
+            if (hw) {
+                setFormData(prev => ({ ...prev, homework: hw.title }));
+            }
+        }
+    }, [availableHomework, formData.homework_id]);
+
     const fetchMyStudents = async () => {
-        const { data } = await supabase
-            .from('profiles')
-            .select('id, email, full_name')
-            .eq('teacher_id', user.id);
+        let query = supabase.from('profiles').select('id, email, full_name').eq('role', 'student');
+
+        if (role === 'teacher') {
+            query = query.eq('teacher_id', user.id);
+        }
+        // Admins see all students, so no extra filter
+
+        const { data } = await query;
         setStudents(data || []);
     };
 
@@ -232,14 +259,14 @@ export default function ReportForm() {
 
             <div className={styles.formGroup}>
                 <label>Select Student</label>
-                {role === 'teacher' ? (
+                {(role === 'teacher' || role === 'admin') ? (
                     <select
                         required
                         value={formData.student_email || ''}
                         onChange={(e) => setFormData({ ...formData, student_email: e.target.value })}
                         className={styles.select}
                     >
-                        <option value="">Choose a student</option>
+                        <option value="">{role === 'admin' ? 'Select a student (All)' : 'Choose your student'}</option>
                         {students.map(s => (
                             <option key={s.email} value={s.email}>{s.full_name || s.email}</option>
                         ))}
