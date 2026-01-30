@@ -7,6 +7,25 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Pencil, Eraser, Trash2, Download, Users, Maximize, Minimize, PlusCircle, Square, Circle, StickyNote, Type, ChevronLeft, ChevronRight, Undo2, Redo2, Settings, Mic, MicOff, PhoneOff, Volume2 } from 'lucide-react';
 import styles from './Whiteboard.module.css';
 
+// Helper component for remote audio to handle autoplay policies and stream binding
+function RemoteAudio({ stream }) {
+    const audioRef = useRef(null);
+
+    useEffect(() => {
+        if (audioRef.current && stream) {
+            audioRef.current.srcObject = stream;
+            const playPromise = audioRef.current.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Autoplay prevented:", error);
+                });
+            }
+        }
+    }, [stream]);
+
+    return <audio ref={audioRef} autoPlay playsInline />;
+}
+
 export default function WhiteboardPage() {
     const { user, profile, role } = useAuth();
     const { id: scheduleId } = useParams();
@@ -33,6 +52,7 @@ export default function WhiteboardPage() {
     const [isInVoice, setIsInVoice] = useState(false);
     const [remoteAudios, setRemoteAudios] = useState([]); // [{userId, stream, name}]
     const peersRef = useRef(new Map()); // Manage multiple peers for mesh voice
+    const pendingCandidates = useRef(new Map()); // Queue ICE candidates if they arrive too early
     const localAudioStreamRef = useRef(null);
 
     const setupCanvas = () => {
@@ -349,7 +369,13 @@ export default function WhiteboardPage() {
 
     const joinVoice = async () => {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
             localAudioStreamRef.current = stream;
             setIsMicOn(true);
             setIsInVoice(true);
@@ -412,16 +438,36 @@ export default function WhiteboardPage() {
             });
         } else if (payload.type === 'answer') {
             await pc.setRemoteDescription(new RTCSessionDescription(payload.sdp));
+            // Process queued candidates
+            const candidates = pendingCandidates.current.get(payload.from) || [];
+            for (const cand of candidates) {
+                await pc.addIceCandidate(new RTCIceCandidate(cand));
+            }
+            pendingCandidates.current.delete(payload.from);
         } else if (payload.type === 'candidate') {
-            try {
-                await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
-            } catch (e) { }
+            if (pc.remoteDescription) {
+                try {
+                    await pc.addIceCandidate(new RTCIceCandidate(payload.candidate));
+                } catch (e) {
+                    console.error("Error adding ice candidate:", e);
+                }
+            } else {
+                // Queue candidate
+                const candidates = pendingCandidates.current.get(payload.from) || [];
+                pendingCandidates.current.set(payload.from, [...candidates, payload.candidate]);
+            }
         }
     };
 
     const setupVoicePeer = (targetId, isInitiator) => {
         const pc = new RTCPeerConnection({
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
         });
 
         pc.onicecandidate = ({ candidate }) => {
@@ -458,6 +504,17 @@ export default function WhiteboardPage() {
                 });
             });
         }
+
+        // Also if we receive an offer, we should process any queued candidates after setting remote desc
+        pc.addEventListener('signalingstatechange', async () => {
+            if (pc.signalingState === 'stable' && !isInitiator) {
+                const candidates = pendingCandidates.current.get(targetId) || [];
+                for (const cand of candidates) {
+                    await pc.addIceCandidate(new RTCIceCandidate(cand));
+                }
+                pendingCandidates.current.delete(targetId);
+            }
+        });
 
         peersRef.current.set(targetId, pc);
         return pc;
@@ -563,9 +620,9 @@ export default function WhiteboardPage() {
             onTouchEnd={() => setDraggingId(null)}
         >
             {/* Hidden Audio Elements */}
-            <div style={{ display: 'none' }}>
+            <div style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}>
                 {remoteAudios.map(ra => (
-                    <audio key={ra.userId} autoPlay ref={el => { if (el) el.srcObject = ra.stream; }} />
+                    <RemoteAudio key={ra.userId} stream={ra.stream} />
                 ))}
             </div>
             <div className={`${styles.mainArea} ${remoteStream || isSharing ? styles.withVideo : ''}`}>
