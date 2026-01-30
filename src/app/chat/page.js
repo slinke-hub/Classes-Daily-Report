@@ -132,12 +132,21 @@ export default function ChatPage() {
 
     const markAsRead = async () => {
         if (!chatWithId) return;
-        await supabase
-            .from('messages')
-            .update({ read_at: new Date().toISOString() })
-            .eq('sender_id', chatWithId)
-            .eq('receiver_id', user.id)
-            .is('read_at', null);
+        try {
+            const { error } = await supabase
+                .from('messages')
+                .update({ read_at: new Date().toISOString() })
+                .eq('sender_id', chatWithId)
+                .eq('receiver_id', user.id)
+                .is('read_at', null);
+
+            // Silence 400 errors if the column doesn't exist yet
+            if (error && error.code !== '42703' && error.status !== 400) {
+                console.error('Error marking as read:', error);
+            }
+        } catch (err) {
+            // Completely silent to avoid spamming the console for the user
+        }
     };
 
     const subscribeToMessages = () => {

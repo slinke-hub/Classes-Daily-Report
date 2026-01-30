@@ -162,9 +162,23 @@
     gap: 15px;
 }
 
+@media (max-width: 768px) {
+    .chatWindow {
+        padding: 15px;
+        padding-top: 85px;
+        /* Account for fixed header if any, though it's relative here */
+    }
+}
+
 .message {
-    max-width: 70%;
+    max-width: 85%;
     display: flex;
+}
+
+@media (max-width: 480px) {
+    .message {
+        max-width: 92%;
+    }
 }
 
 .sent {
@@ -282,6 +296,13 @@
     align-items: flex-end;
     gap: 12px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+    .inputArea {
+        padding: 12px;
+        gap: 8px;
+    }
 }
 
 .attachBtn {

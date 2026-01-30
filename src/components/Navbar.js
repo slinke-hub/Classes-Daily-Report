@@ -38,7 +38,7 @@ export default function Navbar() {
             <div className={styles.container}>
                 <div className={styles.left}>
                     <Link href="/" className={styles.logo}>
-                        My<span>Class</span>
+                        GPA<span>Mastery</span>
                     </Link>
                     <div className={`${styles.menu} ${isMenuOpen ? styles.menuOpen : ''}`}>
                         <Link href="/" className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>

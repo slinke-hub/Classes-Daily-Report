@@ -4,6 +4,12 @@
     margin: 0 auto;
 }
 
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+}
+
 .loading {
     text-align: center;
     padding: 100px;
@@ -14,7 +20,7 @@
 
 .studentStats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px;
     margin-bottom: 40px;
 }
@@ -89,8 +95,14 @@
 
 .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 480px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .card {
