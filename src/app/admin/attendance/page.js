@@ -46,8 +46,8 @@ export default function AdminAttendancePage() {
             // 3. Process data to build attendance list
             const processed = (schedules || []).map(sch => {
                 const report = reports?.find(r =>
-                    r.student_email === sch.student?.email &&
-                    r.teacher_id === sch.teacher_id
+                    r.schedule_id === sch.id ||
+                    (r.student_email === sch.student?.email && r.teacher_id === sch.teacher_id)
                 );
 
                 return {

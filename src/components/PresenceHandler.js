@@ -30,6 +30,7 @@ export default function PresenceHandler() {
                         role: role || 'student',
                         online_at: new Date().toISOString(),
                         current_path: pathname,
+                        schedule_id: pathname.startsWith('/whiteboard/') ? pathname.split('/').pop() : null,
                         last_seen: Date.now()
                     });
                 }

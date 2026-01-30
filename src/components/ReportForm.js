@@ -23,6 +23,7 @@ export default function ReportForm() {
         new_words: [],
         homework: '',
         homework_id: '',
+        schedule_id: '',
         next_lesson: '',
         image_url: ''
     });
@@ -46,12 +47,14 @@ export default function ReportForm() {
         const params = new URLSearchParams(window.location.search);
         const studentEmail = params.get('student');
         const hwId = params.get('homework_id');
+        const schId = params.get('schedule_id');
 
-        if (studentEmail || hwId) {
+        if (studentEmail || hwId || schId) {
             setFormData(prev => ({
                 ...prev,
                 student_email: studentEmail || prev.student_email,
-                homework_id: hwId || prev.homework_id
+                homework_id: hwId || prev.homework_id,
+                schedule_id: schId || prev.schedule_id
             }));
         }
     }, [role]);
@@ -138,7 +141,8 @@ export default function ReportForm() {
                     ...formData,
                     teacher_id: user.id,
                     paid_amount: formData.paid_status ? parseFloat(formData.paid_amount) || 0 : 0,
-                    image_url: finalImageUrl
+                    image_url: finalImageUrl,
+                    schedule_id: formData.schedule_id || null
                 }]);
 
             if (error) throw error;

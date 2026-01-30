@@ -34,10 +34,10 @@ export default function AdminMonitorPage() {
                 // Group users by path to identify "Live Classes"
                 const paths = {};
                 users.forEach(u => {
-                    if (u.current_path?.startsWith('/whiteboard/')) {
-                        const pathId = u.current_path.split('/').pop();
-                        if (!paths[pathId]) paths[pathId] = [];
-                        paths[pathId].push(u);
+                    const schId = u.schedule_id || (u.current_path?.startsWith('/whiteboard/') ? u.current_path.split('/').pop() : null);
+                    if (schId) {
+                        if (!paths[schId]) paths[schId] = [];
+                        paths[schId].push(u);
                     }
                 });
 
@@ -113,9 +113,14 @@ export default function AdminMonitorPage() {
                                             </div>
                                         ))}
                                     </div>
-                                    <Link href={`/whiteboard/${cls.id}`} className={monitorStyles.joinBtn}>
-                                        Observe <ArrowRight size={14} />
-                                    </Link>
+                                    <div className={monitorStyles.actions}>
+                                        <Link href={`/whiteboard/${cls.id}`} className={monitorStyles.joinBtn}>
+                                            Observe <ArrowRight size={14} />
+                                        </Link>
+                                        <Link href={`/reports/new?schedule_id=${cls.id}&student=${cls.students[0]?.email || ''}`} className={monitorStyles.finishBtn}>
+                                            Finish & Report
+                                        </Link>
+                                    </div>
                                 </div>
                             ))
                         )}
