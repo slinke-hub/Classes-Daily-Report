@@ -184,13 +184,33 @@ export const AuthProvider = ({ children }) => {
                         Your Supabase environment variables are missing from the current build.
                         <strong> If this is a Vercel deployment, you must add them to the Project Settings.</strong>
                     </p>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '15px', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <p style={{ marginBottom: '10px' }}><strong>Required Vercel Environment Variables:</strong></p>
-                        <code style={{ display: 'block', textAlign: 'left', background: '#000', padding: '10px', borderRadius: '5px' }}>
-                            NEXT_PUBLIC_SUPABASE_URL<br />
-                            NEXT_PUBLIC_SUPABASE_ANON_KEY
-                        </code>
-                        <p style={{ marginTop: '15px', fontSize: '0.8rem' }}>After adding them, trigger a new deployment.</p>
+
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '20px', borderRadius: '15px', fontSize: '0.9rem', border: '1px solid rgba(255,255,255,0.1)', width: '100%', maxWidth: '600px' }}>
+                        <p style={{ marginBottom: '15px' }}><strong>Variable Status (Current Build):</strong></p>
+                        <div style={{ textAlign: 'left', background: '#000', padding: '15px', borderRadius: '10px', marginBottom: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span>NEXT_PUBLIC_SUPABASE_URL</span>
+                                <span style={{ color: process.env.NEXT_PUBLIC_SUPABASE_URL ? '#10b981' : '#ef4444' }}>
+                                    {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ FOUND' : '❌ MISSING'}
+                                </span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>NEXT_PUBLIC_SUPABASE_ANON_KEY</span>
+                                <span style={{ color: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '#10b981' : '#ef4444' }}>
+                                    {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ FOUND' : '❌ MISSING'}
+                                </span>
+                            </div>
+                        </div>
+
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                            If the status above is ❌, Vercel cannot see your keys. Make sure you added them to the <strong>Production</strong> environment and clicked <strong>Redeploy</strong>.
+                        </p>
+                    </div>
+
+                    <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                        <button onClick={() => window.location.reload()} style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: '#000', fontWeight: 'bold', cursor: 'pointer' }}>
+                            Refresh Page
+                        </button>
                     </div>
                 </div>
             ) : loading && !user ? (
