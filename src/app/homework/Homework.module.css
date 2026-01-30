@@ -279,6 +279,32 @@
     color: var(--text-main);
     outline: none;
     font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group input[type="date"] {
+    position: relative;
+    cursor: pointer;
+}
+
+.group input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.8) sepia(100%) saturate(10000%) hue-rotate(180deg);
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.group input[type="date"]:focus {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.group input:hover,
+.group textarea:hover,
+.group select:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .group select option {

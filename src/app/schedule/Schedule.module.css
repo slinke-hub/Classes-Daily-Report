@@ -146,6 +146,39 @@
     padding: 12px;
     border-radius: 8px;
     color: var(--text-main);
+    font-family: inherit;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group input[type="date"],
+.group input[type="time"] {
+    position: relative;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Custom Calendar/Clock Icons Styling (Browser Dependent) */
+.group input[type="date"]::-webkit-calendar-picker-indicator,
+.group input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.8) sepia(100%) saturate(10000%) hue-rotate(180deg);
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' x2='16' y1='2' y2='6'%3E%3C/line%3E%3Cline x1='8' x2='8' y1='2' y2='6'%3E%3C/line%3E%3Cline x1='3' x2='21' y1='10' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    opacity: 0.7;
+    transition: all 0.2s;
+}
+
+.group input[type="date"]:focus,
+.group input[type="time"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.group input:hover,
+.group select:hover {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .row {

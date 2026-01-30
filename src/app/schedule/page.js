@@ -40,6 +40,17 @@ export default function SchedulePage() {
         description: ''
     });
 
+    // Auto-update end time to 1 hour after start time
+    useEffect(() => {
+        if (!editMode && newEvent.start_time) {
+            const [hours, minutes] = newEvent.start_time.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours + 1, minutes);
+            const newEndTime = date.toTimeString().slice(0, 5);
+            setNewEvent(prev => ({ ...prev, end_time: newEndTime }));
+        }
+    }, [newEvent.start_time, editMode]);
+
     const COLOR_PALETTE = [
         '#00f2fe', '#4facfe', '#7c3aed', '#ff007a',
         '#10b981', '#facc15', '#ef4444', '#f97316'
@@ -99,11 +110,18 @@ export default function SchedulePage() {
     const handleDateSelect = (selectInfo) => {
         if (role === 'student') return;
         setEditMode(false);
+
+        // Start time is current hour rounded up, End time is +1hr
+        const now = new Date();
+        const startH = now.getHours().toString().padStart(2, '0');
+        const endH = (now.getHours() + 1).toString().padStart(2, '0');
+        const startM = "00";
+
         setNewEvent({
             ...newEvent,
             date: selectInfo.startStr,
-            start_time: '09:00',
-            end_time: '10:00',
+            start_time: `${startH}:${startM}`,
+            end_time: `${endH}:${startM}`,
             topic: '',
             description: '',
             student_id: '',
