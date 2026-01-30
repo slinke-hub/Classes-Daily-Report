@@ -142,6 +142,7 @@ export default function ReportForm() {
                     teacher_id: user.id,
                     paid_amount: formData.paid_status ? parseFloat(formData.paid_amount) || 0 : 0,
                     image_url: finalImageUrl,
+                    homework_id: formData.homework_id || null,
                     schedule_id: formData.schedule_id || null
                 }]);
 
