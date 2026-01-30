@@ -12,7 +12,7 @@ export default function Footer() {
         <footer className={styles.footer}>
             <div className={styles.container}>
                 <div className={styles.line}>
-                    <div className={styles.logo}>GPA<span>Mastery</span></div>
+                    <div className={styles.logo}>My<span>Class</span></div>
                     <div className={styles.links}>
                         <Link href="/">Dashboard</Link>
                         <Link href="/homework">Homework</Link>
@@ -21,7 +21,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className={styles.line}>
-                    <p className={styles.copyright}>&copy; {new Date().getFullYear()} GPA Mastery. High-Performance Learning.</p>
+                    <p className={styles.copyright}>&copy; {new Date().getFullYear()} MyClass. High-Performance Learning.</p>
                     <div className={styles.legal}>
                         <span>v{APP_VERSION}</span>
                         <Link href="/privacy">Privacy</Link>

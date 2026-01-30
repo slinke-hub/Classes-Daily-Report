@@ -2,7 +2,7 @@ import './globals.css';
 import AuthWrapper from '../components/AuthWrapper';
 
 export const metadata = {
-    title: 'GPA Mastery | High-Performance Learning',
+    title: 'MyClass | High-Performance Learning',
     description: 'Master your grades, classes, and homework with style.',
 };
 
