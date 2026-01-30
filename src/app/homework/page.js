@@ -20,6 +20,7 @@ export default function HomeworkPage() {
         due_date: '',
         student_id: ''
     });
+    const [editingHomework, setEditingHomework] = useState(null);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -42,8 +43,10 @@ export default function HomeworkPage() {
             if (role === 'student') {
                 query = query.eq('student_id', user.id);
             } else if (role === 'teacher') {
+                // Teachers see only their own assignments
                 query = query.eq('teacher_id', user.id);
             }
+            // Admins see all homeworks, so no filter is applied
 
             const { data, error } = await query.order('created_at', { ascending: false });
             if (error) throw error;
@@ -77,6 +80,26 @@ export default function HomeworkPage() {
             fetchHomeworks();
         } catch (err) {
             alert('Error creating homework: ' + err.message);
+        }
+    };
+
+    const handleUpdateHomework = async (e) => {
+        e.preventDefault();
+        try {
+            const { error } = await supabase
+                .from('homeworks')
+                .update({
+                    title: editingHomework.title,
+                    description: editingHomework.description,
+                    due_date: editingHomework.due_date,
+                    student_id: editingHomework.student_id
+                })
+                .eq('id', editingHomework.id);
+            if (error) throw error;
+            setEditingHomework(null);
+            fetchHomeworks();
+        } catch (err) {
+            alert('Error updating homework: ' + err.message);
         }
     };
 
@@ -143,9 +166,14 @@ export default function HomeworkPage() {
                                     </span>
                                 </div>
                                 {(role === 'teacher' || role === 'admin') && (
-                                    <button onClick={() => handleDeleteHomework(hw.id)} className={styles.deleteBtn}>
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <div className={styles.hwActions}>
+                                        <button onClick={() => setEditingHomework(hw)} className={styles.editBtn}>
+                                            Edit
+                                        </button>
+                                        <button onClick={() => handleDeleteHomework(hw.id)} className={styles.deleteBtn}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                             <h2 className={styles.hwTitle}>{hw.title}</h2>
@@ -153,7 +181,17 @@ export default function HomeworkPage() {
 
                             <div className={styles.hwFooter}>
                                 <div className={styles.hwAuthor}>
-                                    <User size={14} /> {role === 'student' ? hw.profiles?.full_name : 'To: ' + (students.find(s => s.id === hw.student_id)?.full_name || 'Class')}
+                                    <User size={14} />
+                                    {role === 'student' ? (
+                                        hw.profiles?.full_name || 'Teacher'
+                                    ) : (
+                                        <>
+                                            To: {students.find(s => s.id === hw.student_id)?.full_name || 'Class'}
+                                            {role === 'admin' && hw.profiles?.full_name && (
+                                                <span className={styles.assignedBy}> (By: {hw.profiles.full_name})</span>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                                 <button className={styles.viewBtn} onClick={() => router.push(`/homework/${hw.id}`)}>
                                     View Details <Send size={14} />
@@ -216,6 +254,61 @@ export default function HomeworkPage() {
                             </div>
                             <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '20px' }}>
                                 Create Assignment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+            {editingHomework && (
+                <div className={styles.modalOverlay}>
+                    <div className={`${styles.modal} glass slide-up`}>
+                        <div className={styles.modalHeader}>
+                            <h2>Edit Homework</h2>
+                            <button onClick={() => setEditingHomework(null)}><Plus size={18} style={{ transform: 'rotate(45deg)' }} /></button>
+                        </div>
+                        <form onSubmit={handleUpdateHomework} className={styles.form}>
+                            <div className={styles.group}>
+                                <label>Title</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={editingHomework.title}
+                                    onChange={e => setEditingHomework({ ...editingHomework, title: e.target.value })}
+                                />
+                            </div>
+                            <div className={styles.group}>
+                                <label>Description</label>
+                                <textarea
+                                    required
+                                    value={editingHomework.description}
+                                    onChange={e => setEditingHomework({ ...editingHomework, description: e.target.value })}
+                                />
+                            </div>
+                            <div className={styles.row}>
+                                <div className={styles.group}>
+                                    <label>Due Date</label>
+                                    <input
+                                        type="date"
+                                        required
+                                        value={editingHomework.due_date}
+                                        onChange={e => setEditingHomework({ ...editingHomework, due_date: e.target.value })}
+                                    />
+                                </div>
+                                <div className={styles.group}>
+                                    <label>Assign To</label>
+                                    <select
+                                        value={editingHomework.student_id || ''}
+                                        onChange={e => setEditingHomework({ ...editingHomework, student_id: e.target.value })}
+                                    >
+                                        <option value="">All Class</option>
+                                        {students.map(s => (
+                                            <option key={s.id} value={s.id}>{s.full_name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '20px' }}>
+                                Save Changes
                             </button>
                         </form>
                     </div>

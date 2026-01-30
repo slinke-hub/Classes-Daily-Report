@@ -12,6 +12,16 @@
     gap: 20px;
 }
 
+.titleArea h1 {
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.titleArea p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
 .addBtn {
     background-color: var(--accent-color);
     color: #000;
@@ -33,6 +43,12 @@
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.backBtn:hover {
+    color: var(--accent-color);
 }
 
 .tableContainer {
@@ -40,6 +56,7 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
 
 .table {
@@ -68,6 +85,9 @@
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .admin {
@@ -225,4 +245,131 @@
     font-weight: 700;
     border: none;
     cursor: pointer;
+}
+
+.toolbar {
+    margin: 20px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.searchBox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid #333;
+    padding: 8px 16px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 350px;
+}
+
+.searchBox input {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    width: 100%;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.userCell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatarMini {
+    width: 32px;
+    height: 32px;
+    background: var(--accent-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #000;
+}
+
+.userName {
+    font-weight: 700;
+    font-size: 0.95rem;
+    display: block;
+}
+
+.userEmail {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    display: block;
+}
+
+.contactCell,
+.locationCell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.contactCell svg,
+.locationCell svg {
+    color: var(--accent-color);
+}
+
+.teacherCell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.assignedName {
+    font-weight: 600;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.unassigned {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.85rem;
+    opacity: 0.6;
+}
+
+.editLink {
+    background: none;
+    border: none;
+    color: var(--accent-color);
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    text-decoration: underline;
+}
+
+.editAssignWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.selectMini {
+    background: var(--bg-tertiary);
+    border: 1px solid #444;
+    color: #fff;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.cancelLink {
+    background: none;
+    border: none;
+    color: #FF5252;
+    font-size: 0.65rem;
+    cursor: pointer;
+    text-align: left;
 }

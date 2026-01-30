@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X, FileText } from 'lucide-react';
+import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X, FileText, GraduationCap } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -46,10 +46,16 @@ export default function Navbar() {
                             <span>Dashboard</span>
                         </Link>
                         {role === 'admin' && (
-                            <Link href="/admin/users" className={`${styles.navLink} ${isActive('/admin/users') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
-                                <User size={18} />
-                                <span>Users</span>
-                            </Link>
+                            <>
+                                <Link href="/admin/teachers" className={`${styles.navLink} ${isActive('/admin/teachers') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                                    <User size={18} />
+                                    <span>Teachers</span>
+                                </Link>
+                                <Link href="/admin/students" className={`${styles.navLink} ${isActive('/admin/students') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                                    <GraduationCap size={18} />
+                                    <span>Students</span>
+                                </Link>
+                            </>
                         )}
                         {(role === 'admin' || role === 'teacher') && (
                             <>

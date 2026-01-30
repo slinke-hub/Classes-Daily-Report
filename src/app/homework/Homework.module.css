@@ -168,6 +168,30 @@
     color: var(--error);
 }
 
+.hwActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.editBtn {
+    background: rgba(0, 242, 254, 0.1);
+    border: 1px solid rgba(0, 242, 254, 0.2);
+    color: var(--primary);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.editBtn:hover {
+    background: var(--primary);
+    color: #000;
+}
+
 .hwTitle {
     font-size: 1.25rem;
     font-weight: 700;
@@ -198,6 +222,12 @@
     display: flex;
     align-items: center;
     gap: 6px;
+}
+
+.assignedBy {
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 400;
 }
 
 .viewBtn {
