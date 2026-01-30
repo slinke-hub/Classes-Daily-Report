@@ -211,15 +211,17 @@ export default function AdminUsersPage() {
                 <table className={styles.table}>
                     <thead>
                         <tr>
+                            <th>Full Name</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Teacher</th>
+                            <th>Assigned Teacher</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {users.map((u) => (
                             <tr key={u.id}>
+                                <td>{u.full_name || 'N/A'}</td>
                                 <td>{u.email}</td>
                                 <td>
                                     <span className={`${styles.roleBadge} ${styles[u.role]}`}>
@@ -228,7 +230,15 @@ export default function AdminUsersPage() {
                                 </td>
                                 <td>
                                     {u.role === 'student' ? (
-                                        users.find(t => t.id === u.teacher_id)?.email || 'None'
+                                        <div className={styles.teacherCell}>
+                                            {users.find(t => t.id === u.teacher_id) ? (
+                                                <span className={styles.assignedName}>
+                                                    {users.find(t => t.id === u.teacher_id).full_name || users.find(t => t.id === u.teacher_id).email}
+                                                </span>
+                                            ) : (
+                                                <span className={styles.unassigned}>Unassigned</span>
+                                            )}
+                                        </div>
                                     ) : '-'}
                                 </td>
                                 <td>

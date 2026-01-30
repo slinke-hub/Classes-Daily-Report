@@ -22,6 +22,7 @@ export default function ReportForm() {
         point_of_focus: '',
         new_words: [],
         homework: '',
+        homework_id: '',
         next_lesson: '',
         image_url: ''
     });
@@ -34,11 +35,24 @@ export default function ReportForm() {
         onConfirm: () => { }
     });
 
+    const [availableHomework, setAvailableHomework] = useState([]);
+
     useEffect(() => {
         if (role === 'teacher') {
             fetchMyStudents();
         }
     }, [role]);
+
+    useEffect(() => {
+        if (formData.student_email) {
+            const student = students.find(s => s.email === formData.student_email);
+            if (student) {
+                fetchStudentHomework(student.id);
+            }
+        } else {
+            setAvailableHomework([]);
+        }
+    }, [formData.student_email, students]);
 
     const fetchMyStudents = async () => {
         const { data } = await supabase
@@ -46,6 +60,15 @@ export default function ReportForm() {
             .select('id, email, full_name')
             .eq('teacher_id', user.id);
         setStudents(data || []);
+    };
+
+    const fetchStudentHomework = async (studentId) => {
+        const { data } = await supabase
+            .from('homeworks')
+            .select('id, title')
+            .eq('student_id', studentId)
+            .order('created_at', { ascending: false });
+        setAvailableHomework(data || []);
     };
 
     const handleFileChange = (e) => {
@@ -176,12 +199,34 @@ export default function ReportForm() {
             </div>
 
             <div className={styles.formGroup}>
-                <label>Homework</label>
+                <label>Link Homework (Optional)</label>
+                <select
+                    value={formData.homework_id || ''}
+                    onChange={(e) => {
+                        const selectedHw = availableHomework.find(h => h.id === e.target.value);
+                        setFormData({
+                            ...formData,
+                            homework_id: e.target.value,
+                            homework: selectedHw ? selectedHw.title : ''
+                        });
+                    }}
+                    className={styles.select}
+                >
+                    <option value="">Select an assignment</option>
+                    {availableHomework.map(hw => (
+                        <option key={hw.id} value={hw.id}>{hw.title}</option>
+                    ))}
+                </select>
+                <p className={styles.helpText}>Link this report to an existing assignment in the Homework Hub.</p>
+            </div>
+
+            <div className={styles.formGroup}>
+                <label>Homework Details (Custom)</label>
                 <textarea
-                    rows={3}
+                    rows={2}
                     value={formData.homework || ''}
                     onChange={(e) => setFormData({ ...formData, homework: e.target.value })}
-                    placeholder="Assignment for next class..."
+                    placeholder="Additional instructions or selected assignment title..."
                 />
             </div>
 

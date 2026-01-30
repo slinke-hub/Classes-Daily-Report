@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X } from 'lucide-react';
+import { User, Settings, LogOut, LayoutDashboard, Calendar, MessageSquare, PlusCircle, BookOpen, ListChecks, Menu, X, FileText } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
@@ -63,9 +63,19 @@ export default function Navbar() {
                                 </Link>
                             </>
                         )}
+                        {role === 'student' && (
+                            <Link href="/reports" className={`${styles.navLink} ${isActive('/reports') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                                <FileText size={18} />
+                                <span>My Reports</span>
+                            </Link>
+                        )}
                         <Link href="/chat" className={`${styles.navLink} ${isActive('/chat') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
                             <MessageSquare size={18} />
                             <span>Chat</span>
+                        </Link>
+                        <Link href="/homework" className={`${styles.navLink} ${isActive('/homework') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
+                            <BookOpen size={18} />
+                            <span>Homework hub</span>
                         </Link>
                         <Link href="/quizzes" className={`${styles.navLink} ${isActive('/quizzes') ? styles.active : ''}`} onClick={() => setIsMenuOpen(false)}>
                             <ListChecks size={18} />

@@ -15,6 +15,7 @@ export default function HomeworkDetail() {
     const [homework, setHomework] = useState(null);
     const [submission, setSubmission] = useState(null);
     const [newSubmission, setNewSubmission] = useState({ content: '', file_url: '' });
+    const [uploadFile, setUploadFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [gradeData, setGradeData] = useState({ grade: '', feedback: '' });
 
@@ -56,14 +57,38 @@ export default function HomeworkDetail() {
         }
     };
 
+    const uploadToStorage = async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `submissions/${fileName}`;
+
+        const { data, error } = await supabase.storage
+            .from('homework-attachments')
+            .upload(filePath, file);
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('homework-attachments')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
+
     const handleSubmitWork = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            let fileUrl = newSubmission.file_url;
+            if (uploadFile) {
+                fileUrl = await uploadToStorage(uploadFile);
+            }
+
             const { error } = await supabase.from('submissions').insert([{
                 homework_id: id,
                 student_id: user.id,
-                ...newSubmission
+                content: newSubmission.content,
+                file_url: fileUrl
             }]);
             if (error) throw error;
 
@@ -163,12 +188,24 @@ export default function HomeworkDetail() {
                                     value={newSubmission.content}
                                     onChange={e => setNewSubmission({ ...newSubmission, content: e.target.value })}
                                 />
-                                <input
-                                    type="url"
-                                    placeholder="Link to project/file (optional)"
-                                    value={newSubmission.file_url}
-                                    onChange={e => setNewSubmission({ ...newSubmission, file_url: e.target.value })}
-                                />
+                                <div className={styles.fileUploadLine}>
+                                    <label className={styles.fileLabel}>
+                                        <FileText size={16} /> {uploadFile ? uploadFile.name : 'Upload PDF/Images'}
+                                        <input
+                                            type="file"
+                                            hidden
+                                            accept=".pdf,image/*"
+                                            onChange={e => setUploadFile(e.target.files[0])}
+                                        />
+                                    </label>
+                                    <span className={styles.or}>OR</span>
+                                    <input
+                                        type="url"
+                                        placeholder="External Link (Google Drive, etc.)"
+                                        value={newSubmission.file_url}
+                                        onChange={e => setNewSubmission({ ...newSubmission, file_url: e.target.value })}
+                                    />
+                                </div>
                                 <button type="submit" className="btn-primary" disabled={isSubmitting}>
                                     {isSubmitting ? 'Submitting...' : 'Submit Assignment'}
                                 </button>
