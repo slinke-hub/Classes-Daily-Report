@@ -11,6 +11,9 @@ export default function Navbar() {
     const { user, profile, role, logout } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+
+    // Hide Navbar on Whiteboard for full-screen experience
+    if (pathname?.includes('/whiteboard')) return null;
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const dropdownRef = useRef(null);
