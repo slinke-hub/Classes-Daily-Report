@@ -5,6 +5,7 @@ import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { TrendingUp } from 'lucide-react';
 import styles from './Users.module.css';
 import CustomDialog from '../../../components/CustomDialog';
 
@@ -204,7 +205,12 @@ export default function AdminUsersPage() {
             <header className={styles.header}>
                 <Link href="/" className={styles.backBtn}>&larr; Back to Dashboard</Link>
                 <h1>User Management</h1>
-                <button onClick={() => setShowCreateModal(true)} className={`${styles.addBtn} btn-primary`}>+ Add New User</button>
+                <div className={styles.headerActions}>
+                    <button onClick={() => router.push('/admin/promote')} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <TrendingUp size={18} /> Promote Students
+                    </button>
+                    <button onClick={() => setShowCreateModal(true)} className={`${styles.addBtn} btn-primary`}>+ Add New User</button>
+                </div>
             </header>
 
             <div className={styles.tableContainer}>

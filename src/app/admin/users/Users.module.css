@@ -12,6 +12,12 @@
     gap: 20px;
 }
 
+.headerActions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
 .titleArea h1 {
     font-size: 1.8rem;
     margin-bottom: 5px;

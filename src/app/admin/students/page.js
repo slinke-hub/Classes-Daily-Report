@@ -5,7 +5,7 @@ import { supabase } from '../../../utils/supabase';
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Users, Search, BookOpen, GraduationCap, UserCheck, Trash2, Edit3 } from 'lucide-react';
+import { Users, Search, BookOpen, GraduationCap, UserCheck, Trash2, Edit3, TrendingUp } from 'lucide-react';
 import styles from '../users/Users.module.css';
 import CustomDialog from '../../../components/CustomDialog';
 
@@ -105,6 +105,13 @@ export default function ManageStudentsPage() {
                     <h1>Manage Students</h1>
                     <p>Total Registered Students: {students.length}</p>
                 </div>
+                <button
+                    onClick={() => router.push('/admin/promote')}
+                    className="btn-primary"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                >
+                    <TrendingUp size={18} /> Promote Students
+                </button>
             </header>
 
             <div className={styles.toolbar}>
