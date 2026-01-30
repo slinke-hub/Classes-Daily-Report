@@ -43,6 +43,11 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 70px;
+}
+
 body {
   background-color: var(--bg-deep);
   background-image:
@@ -170,6 +175,41 @@ input:-webkit-autofill:focus {
   transition: background-color 5000s ease-in-out 0s;
 }
 
+/* Layout container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 60px;
+}
+
+/* Full width pages (Chat, Whiteboard) */
+body:has(.chat-full),
+body:has(.whiteboard-full) {
+  overflow: hidden;
+}
+
+body:has(.chat-full) .main-content,
+body:has(.whiteboard-full) .main-content {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+body:has(.chat-full) footer,
+body:has(.whiteboard-full) footer {
+  display: none !important;
+}
+
 /* Responsiveness Utilities */
 .hide-mobile {
   display: block;
@@ -179,7 +219,18 @@ input:-webkit-autofill:focus {
   display: none;
 }
 
+@media (max-width: 1024px) {
+  .main-content {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
+  .main-content {
+    padding: 15px;
+    padding-bottom: 80px;
+  }
+
   .hide-mobile {
     display: none !important;
   }
@@ -203,4 +254,21 @@ input:-webkit-autofill:focus {
   h3 {
     font-size: 1.2rem;
   }
+}
+
+/* Fix for overlapping issues */
+* {
+  box-sizing: border-box;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
 }

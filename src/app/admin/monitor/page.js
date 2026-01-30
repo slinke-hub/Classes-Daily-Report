@@ -212,6 +212,24 @@ export default function AdminMonitorPage() {
                 .badgeS { background: var(--primary); color: #000; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
                 .joinBtn { background: rgba(0, 242, 254, 0.1); color: var(--primary); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; text-decoration: none; transition: 0.3s; }
                 .joinBtn:hover { background: var(--primary); color: #000; }
+                .finishBtn { background: rgba(255, 255, 255, 0.05); color: var(--text-main); padding: 8px 15px; border-radius: 8px; font-size: 0.85rem; text-decoration: none; border: 1px solid rgba(255, 255, 255, 0.1); }
+                .actions { display: flex; gap: 10px; }
+                
+                @media (max-width: 768px) {
+                    .classCard {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 20px;
+                    }
+                    .members {
+                        margin: 0;
+                        width: 100%;
+                    }
+                    .actions {
+                        width: 100%;
+                        justify-content: space-between;
+                    }
+                }
                 
                 .userList { display: flex; flex-direction: column; gap: 12px; }
                 .userItem { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.02); padding: 10px; border-radius: 10px; position: relative; }
@@ -243,6 +261,7 @@ const monitorStyles = {
     badgeT: 'm-badge-t',
     badgeS: 'm-badge-s',
     joinBtn: 'm-join',
+    finishBtn: 'm-finish',
     userTabs: 'm-tabs',
     tabGroup: 'm-tab-group',
     userList: 'm-list-u',

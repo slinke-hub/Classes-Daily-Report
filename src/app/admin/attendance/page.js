@@ -96,7 +96,7 @@ export default function AdminAttendancePage() {
                 </div>
             </header>
 
-            <div className={styles.toolbar}>
+            <div className={styles.toolbar} style={{ flexWrap: 'wrap', gap: '15px' }}>
                 <div className={attStyles.filterGroup}>
                     <Calendar size={18} />
                     <input
@@ -106,7 +106,7 @@ export default function AdminAttendancePage() {
                         className={styles.select}
                     />
                 </div>
-                <button className="btn-secondary" onClick={() => window.print()}>
+                <button className="btn-secondary" onClick={() => window.print()} style={{ marginLeft: 'auto' }}>
                     <Download size={16} /> Export PDF
                 </button>
             </div>
@@ -190,8 +190,21 @@ export default function AdminAttendancePage() {
                     cursor: pointer;
                     text-decoration: underline;
                 }
-                .statItem {
-                    text-align: right;
+                @media (max-width: 768px) {
+                    .header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 15px;
+                    }
+                    .statsMini {
+                        width: 100%;
+                        justify-content: flex-start;
+                        padding-top: 10px;
+                        border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    .statItem {
+                        text-align: left;
+                    }
                 }
                 .statItem strong { display: block; font-size: 1.4rem; color: #fff; line-height: 1; }
                 .statItem span { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; }

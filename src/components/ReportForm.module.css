@@ -107,3 +107,9 @@
     color: var(--accent-color);
     margin-top: 4px;
 }
+
+@media (max-width: 480px) {
+    .form {
+        padding: 15px;
+    }
+}

@@ -613,7 +613,7 @@ export default function WhiteboardPage() {
     };
 
     return (
-        <div className={styles.container}
+        <div className={`${styles.container} whiteboard-full`}
             onMouseMove={(e) => draggingId && handleObjectDrag(e, draggingId)}
             onMouseUp={() => setDraggingId(null)}
             onTouchMove={(e) => { if (draggingId) { e.preventDefault(); handleObjectDrag(e, draggingId); } }}

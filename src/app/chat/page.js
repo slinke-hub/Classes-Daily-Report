@@ -245,7 +245,7 @@ export default function ChatPage() {
     };
 
     return (
-        <main className={styles.container}>
+        <main className={`${styles.container} chat-full`}>
             {/* Sidebar: Only visible on desktop or if no chat is selected on mobile */}
             <aside className={`${styles.sidebar} ${chatWithId ? styles.hideMobile : ''}`}>
                 <div className={styles.sidebarHeader}>
@@ -325,8 +325,10 @@ export default function ChatPage() {
                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                                 {msg.sender_id === user.id && (
-                                                    <div className={`${styles.status} ${msg.read_at ? styles.read : styles.delivered}`}>
-                                                        {msg.read_at ? <CheckCheck size={14} /> : (msg.id < 1e12 ? <CheckCheck size={14} /> : <Check size={14} />)}
+                                                    <div className={`${styles.status} ${msg.read_at ? styles.read : styles.sentStatus}`}>
+                                                        {msg.read_at ? <CheckCheck size={15} /> : (
+                                                            typeof msg.id === 'string' ? <CheckCheck size={15} /> : <Check size={15} />
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
